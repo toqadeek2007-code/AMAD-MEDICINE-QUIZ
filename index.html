@@ -10,6 +10,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <style>
         :root {
             --teal-950: #042424; --teal-900: #063232; --teal-800: #0a4a4e; --teal-700: #0d6468;
@@ -110,9 +111,6 @@
         .role-opt { flex:1; min-width:80px; padding:9px; border:2px solid var(--border); border-radius:var(--radius-xs); text-align:center; cursor:pointer; font-size:11px; font-weight:600; color:var(--text-3); transition:var(--tr); }
         .role-opt:hover { border-color:var(--teal-400); color:var(--teal-700); } .role-opt.selected { border-color:var(--teal-600); background:var(--teal-50); color:var(--teal-700); } .role-opt .role-icon { font-size:20px; display:block; margin-bottom:3px; }
         .custom-role-wrap { margin-top:6px; display:none; } .custom-role-wrap.show { display:block; }
-        .remember-row { display:flex; align-items:center; gap:8px; margin-bottom:12px; font-size:11px; color:var(--text-3); } .remember-row input[type="checkbox"] { width:16px; height:16px; accent-color:var(--teal-600); }
-        .forgot-link { text-align:right; margin-bottom:8px; } .forgot-link a { font-size:10px; color:var(--text-3); cursor:pointer; text-decoration:underline; } .forgot-link a:hover { color:var(--teal-600); }
-        .guest-btn-row { text-align:center; margin-top:12px; padding-top:12px; border-top:1px solid var(--border); }
         .btn { display:inline-flex; align-items:center; justify-content:center; gap:6px; padding:10px 16px; border:none; border-radius:var(--radius-xs); font-size:13px; font-weight:600; cursor:pointer; transition:var(--tr); font-family:var(--font-body); white-space:nowrap; }
         .btn-primary { background:linear-gradient(135deg,var(--teal-700),var(--teal-600)); color:white; box-shadow:0 3px 10px rgba(13,100,104,.25); }
         .btn-primary:hover { background:linear-gradient(135deg,var(--teal-800),var(--teal-700)); transform:translateY(-1px); }
@@ -142,7 +140,6 @@
         .star-rating { display:flex; gap:2px; cursor:pointer; } .star-rating .star { font-size:16px; color:#d1d5db; transition:var(--tr); } .star-rating .star.active { color:#f59e0b; } .star-rating .star:hover { transform:scale(1.2); }
         .format-hint { background:var(--teal-50); border:1px solid var(--teal-100); border-radius:var(--radius-sm); padding:11px 13px; margin-bottom:13px; font-size:11px; color:var(--teal-800); line-height:1.7; display:flex; gap:8px; align-items:flex-start; }
         .format-hint code { background:var(--teal-100); padding:1px 6px; border-radius:3px; font-family:var(--font-mono); font-size:10px; }
-        .selected-folder-tag { display:inline-flex; align-items:center; gap:6px; background:var(--teal-50); color:var(--teal-900); padding:5px 11px; border-radius:20px; font-size:11px; font-weight:600; margin-bottom:9px; border:1px solid var(--teal-300); }
         textarea { width:100%; min-height:280px; border:2px solid var(--border); border-radius:var(--radius-sm); padding:13px; font-family:var(--font-mono); font-size:12px; line-height:1.85; resize:vertical; transition:var(--tr); background:#fafcfc; color:var(--text); }
         textarea:focus { outline:none; border-color:var(--teal-500); box-shadow:0 0 0 4px rgba(20,168,180,.06); background:#fff; }
         .file-upload-zone { border:2px dashed var(--border); border-radius:var(--radius-sm); padding:20px; text-align:center; cursor:pointer; transition:var(--tr); background:#fafcfc; margin-bottom:10px; }
@@ -209,9 +206,10 @@
         .admin-crown { position:absolute; top:-5px; right:-5px; background:var(--gold); width:16px; height:16px; border-radius:50%; font-size:9px; display:flex; align-items:center; justify-content:center; } .user-avatar-wrap { position:relative; flex-shrink:0; }
         .discover-filters { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; } .discover-filters .form-input { max-width:200px; }
         .trash-empty-state { text-align:center; padding:40px; color:var(--text-3); } .trash-empty-state .empty-icon { font-size:48px; margin-bottom:12px; }
+        .loading-spinner { display:inline-block; width:20px; height:20px; border:2px solid rgba(255,255,255,.3); border-top-color:white; border-radius:50%; animation:spin .6s linear infinite; }
+        @keyframes spin { to{transform:rotate(360deg)} }
         @media(max-width:860px){ .app-body{flex-direction:column} .sidebar{width:100%;min-width:100%;height:auto;position:relative} .sidebar-nav{flex-direction:row;flex-wrap:wrap} .nav-section,.sidebar-divider,.folder-list,.sidebar-signature,.ai-assistant-mini{display:none} .nav-item{width:auto;font-size:11px;padding:7px 10px} .work-area{padding:10px} }
         @media print{ .sidebar,.site-banner,.top-bar,.quiz-btns,.result-btns,.btn,.resume-banner{display:none!important} .work-area{padding:0} body{background:white} }
-        .recovery-section { text-align:center; margin-top:12px; padding-top:12px; border-top:1px solid var(--border); } .recovery-section a { font-size:10px; color:var(--text-3); cursor:pointer; text-decoration:underline; } .recovery-section a:hover { color:var(--teal-600); }
     </style>
 </head>
 <body>
@@ -225,31 +223,27 @@
             <div class="auth-logo-wrap"><img src="https://i.postimg.cc/PvbXdSPg/logo.png" alt="AMAD" class="auth-logo"><div class="auth-title">Welcome to AMAD</div><div class="auth-sub">Sign in to access the medical quiz platform</div></div>
             <div class="auth-tabs"><button class="auth-tab active" id="tabLogin" onclick="switchAuthTab('login')">Sign In</button><button class="auth-tab" id="tabRegister" onclick="switchAuthTab('register')">Create Account</button></div>
             <div id="loginForm">
-                <div class="form-group"><label class="form-label">Username</label><input type="text" id="loginUser" class="form-input" placeholder="Enter your username"></div>
+                <div class="form-group"><label class="form-label">Email</label><input type="email" id="loginEmail" class="form-input" placeholder="Enter your email"></div>
                 <div class="form-group"><label class="form-label">Password</label><input type="password" id="loginPassword" class="form-input" placeholder="Enter your password"></div>
-                <div class="remember-row"><input type="checkbox" id="rememberMe"><label for="rememberMe">Remember me</label></div>
-                <div class="forgot-link"><a onclick="showRecoveryModal()">Forgot password?</a></div>
                 <div class="alert alert-error" id="loginError"></div>
-                <button class="btn btn-primary btn-lg" style="margin-top:8px;" onclick="doLogin()">Sign In →</button>
+                <div class="alert alert-success" id="loginSuccess"></div>
+                <button class="btn btn-primary btn-lg" style="margin-top:8px;" onclick="doLogin()" id="loginBtn">Sign In →</button>
                 <div class="guest-btn-row"><button class="btn btn-outline btn-lg" onclick="loginAsGuest()">👤 Continue as Guest</button></div>
             </div>
             <div id="registerForm" style="display:none;">
                 <div class="form-group"><label class="form-label">Full Name</label><input type="text" id="regName" class="form-input" placeholder="Your full name"></div>
-                <div class="form-group"><label class="form-label">Username</label><input type="text" id="regUser" class="form-input" placeholder="Choose a username"></div>
-                <div class="form-group"><label class="form-label">Password (any characters, min 4)</label><input type="password" id="regPassword" class="form-input" placeholder="Create a password"></div>
-                <div class="form-group"><label class="form-label">Confirm Password</label><input type="password" id="regPassword2" class="form-input" placeholder="Repeat password"></div>
-                <div class="form-group"><label class="form-label">Email (optional - for account recovery)</label><input type="email" id="regEmail" class="form-input" placeholder="your@email.com"></div>
-                <div class="form-group"><label class="form-label">Recovery Code (optional - for password reset)</label><input type="text" id="regRecoveryCode" class="form-input" placeholder="Enter a secret code you'll remember"></div>
-                <div class="form-group"><label class="form-label">Role</label><div class="role-selector" id="roleSelector"><div class="role-opt selected" data-role="student" onclick="selectRole(this)"><span class="role-icon">🎓</span>Student</div><div class="role-opt" data-role="doctor" onclick="selectRole(this)"><span class="role-icon">👨‍⚕️</span>Doctor</div><div class="role-opt" data-role="custom" onclick="selectRole(this)"><span class="role-icon">✨</span>Other</div></div></div>
-                <div class="custom-role-wrap" id="customRoleWrap"><input type="text" id="customRoleInput" class="form-input" placeholder="Enter your title"></div>
+                <div class="form-group"><label class="form-label">Email</label><input type="email" id="regEmail" class="form-input" placeholder="your@email.com"></div>
+                <div class="form-group"><label class="form-label">Password (min 6 characters)</label><input type="password" id="regPassword" class="form-input" placeholder="Create a password"></div>
+                <div class="form-group"><label class="form-label">Role</label><div class="role-selector" id="roleSelector"><div class="role-opt selected" data-role="student" onclick="selectRole(this)"><span class="role-icon">🎓</span>Student</div><div class="role-opt" data-role="doctor" onclick="selectRole(this)"><span class="role-icon">👨‍⚕️</span>Doctor</div></div></div>
                 <div class="alert alert-error" id="regError"></div>
-                <button class="btn btn-primary btn-lg" style="margin-top:8px;" onclick="doRegister()">Create Account →</button>
+                <div class="alert alert-success" id="regSuccess"></div>
+                <button class="btn btn-primary btn-lg" style="margin-top:8px;" onclick="doRegister()" id="regBtn">Create Account →</button>
             </div>
         </div>
     </div>
     <div id="appBody" class="app-body" style="display:none;">
         <aside class="sidebar" id="sidebar">
-            <div class="sidebar-user"><div class="user-avatar-wrap"><div class="user-avatar" id="userAvatar" onclick="switchScreen('profileScreen')">U</div><div class="admin-crown" id="adminCrown" style="display:none;">👑</div></div><div class="user-info"><div class="user-name" id="userDisplayName">User</div><div class="user-role" id="userDisplayRole">Guest</div></div><button class="logout-btn" onclick="doLogout()">🚪 Sign Out</button></div>
+            <div class="sidebar-user"><div class="user-avatar-wrap"><div class="user-avatar" id="userAvatar" onclick="switchScreen('profileScreen')">U</div><div class="admin-crown" id="adminCrown" style="display:none;">👑</div></div><div class="user-info"><div class="user-name" id="userDisplayName">User</div><div class="user-role" id="userDisplayRole">Student</div></div><button class="logout-btn" onclick="doLogout()">🚪 Sign Out</button></div>
             <nav class="sidebar-nav">
                 <div class="nav-section">📋 Navigation</div>
                 <button class="nav-item active" data-screen="inputScreen" onclick="switchScreen('inputScreen',this)"><span class="nav-icon">📝</span> New Quiz</button>
@@ -262,12 +256,11 @@
                 <button class="nav-item" data-screen="communityScreen" onclick="switchScreen('communityScreen',this)"><span class="nav-icon">💬</span> Community</button>
                 <button class="nav-item" data-screen="notificationsScreen" onclick="switchScreen('notificationsScreen',this)" id="navNotifications"><span class="nav-icon">🔔</span> Notifications<span class="nav-badge" id="notifBadge" style="display:none">0</span></button>
                 <button class="nav-item" data-screen="trashScreen" onclick="switchScreen('trashScreen',this)" id="navTrash"><span class="nav-icon">🗑️</span> Trash</button>
-                <button class="nav-item" id="navQuestionBank" data-screen="questionBankScreen" onclick="switchScreen('questionBankScreen',this)" style="display:none;"><span class="nav-icon">🏦</span> Question Bank</button>
                 <button class="nav-item" id="navAdmin" data-screen="adminScreen" onclick="switchScreen('adminScreen',this)" style="display:none;"><span class="nav-icon">🛡️</span> Admin Panel</button>
                 <div class="sidebar-divider"></div>
                 <div class="nav-section">📁 Folders <button style="background:none;border:none;color:var(--teal-400);cursor:pointer;font-size:14px;" onclick="openCreateFolderModal()">+</button></div>
                 <ul class="folder-list" id="folderList"><li style="color:#3a5a5e;padding:4px 12px;">No folders</li></ul>
-                <div class="ai-assistant-mini" onclick="switchScreen('aiAssistantScreen');"><div class="ai-icon">🤖</div><div class="ai-label">AI Assistant</div></div>
+                <div class="ai-assistant-mini" onclick="switchScreen('aiAssistantScreen');"><span>🤖</span><span>AI Assistant</span></div>
             </nav>
             <div class="sidebar-signature"><div class="sig-label">Designed by</div><div class="sig-name">Toqa Aldeek</div><div class="sig-sub">© 2025 AMAD</div></div>
         </aside>
@@ -275,9 +268,9 @@
             <div class="top-bar"><div class="breadcrumb">AMAD <span class="sep">›</span> <b id="breadcrumbPage">New Quiz</b></div><div class="top-actions"><span class="dark-mode-toggle" onclick="toggleDarkMode()">🌓</span><button class="btn-icon" onclick="loadSampleQuestions()">📥</button><button class="btn-icon" onclick="clearAll()">🗑️</button><button class="btn-icon" onclick="openShareModal()">🔗</button></div></div>
             <div class="work-area">
                 <div class="resume-banner" id="resumeBanner"><span>💾</span><span style="flex:1;"><b>Unfinished quiz!</b> <span id="resumeDetails"></span></span><button class="btn btn-gold btn-sm" onclick="resumeQuiz()">▶ Resume</button><button class="btn btn-outline btn-sm" onclick="discardProgress()">✕</button></div>
-                <div class="card screen active" id="inputScreen"><div class="card-header"><div><div class="card-title">📝 Generate New Quiz</div></div><div id="folderTagContainer"></div></div><div class="card-body"><input type="text" id="quizNameInput" class="quiz-name-input" placeholder="✏️ Quiz Name"><div style="display:flex;gap:8px;margin-bottom:8px;"><div style="flex:1;"><label class="form-label">Subject Tag</label><div class="tag-input-wrap" id="subjectTagWrap"><input type="text" class="tag-input-inner" id="subjectTagInput" placeholder="e.g., Physiology" onkeydown="handleTagKey(event,'subject')"></div></div><div style="flex:1;"><label class="form-label">Topic Tag</label><div class="tag-input-wrap" id="topicTagWrap"><input type="text" class="tag-input-inner" id="topicTagInput" placeholder="e.g., Renal System" onkeydown="handleTagKey(event,'topic')"></div></div></div><div class="input-tabs"><button class="input-tab active" onclick="switchInputTab('text')">📄 Paste Text</button><button class="input-tab" onclick="switchInputTab('file')">📎 Upload File</button></div><div id="textInputPanel"><textarea id="questionsInput" placeholder="Paste your questions...&#10;&#10;1. What is the main function of the renal system?&#10;A. Blood filtration&#10;B. Hormone production&#10;C. Digestion&#10;D. Respiration&#10;Correct Answer: A"></textarea></div><div id="fileInputPanel" style="display:none;"><div class="file-upload-zone" id="fileDropZone" onclick="document.getElementById('fileInput').click()" ondragover="handleDragOver(event)" ondrop="handleDrop(event)"><div class="file-upload-zone-icon">📎</div><div class="file-upload-zone-text">Click or drag file</div></div><input type="file" id="fileInput" accept=".pdf,.docx,.pptx,.txt" style="display:none;" onchange="handleFileUpload(event)"></div><div class="alert alert-error" id="errorMsg"></div><div class="alert alert-success" id="successMsg"></div><div class="btn-row"><button class="btn btn-outline btn-sm" onclick="openCreateFolderModal()">📁 Folder</button><button class="btn btn-primary" onclick="generateQuiz()" style="flex:2;">⚡ Generate Quiz</button></div></div></div>
+                <div class="card screen active" id="inputScreen"><div class="card-header"><div><div class="card-title">📝 Generate New Quiz</div></div><div id="folderTagContainer"></div></div><div class="card-body"><input type="text" id="quizNameInput" class="quiz-name-input" placeholder="✏️ Quiz Name"><div style="display:flex;gap:8px;margin-bottom:8px;"><div style="flex:1;"><label class="form-label">Subject Tag</label><div class="tag-input-wrap" id="subjectTagWrap"><input type="text" class="tag-input-inner" id="subjectTagInput" placeholder="e.g., Physiology" onkeydown="handleTagKey(event,'subject')"></div></div><div style="flex:1;"><label class="form-label">Topic Tag</label><div class="tag-input-wrap" id="topicTagWrap"><input type="text" class="tag-input-inner" id="topicTagInput" placeholder="e.g., Renal System" onkeydown="handleTagKey(event,'topic')"></div></div></div><div class="input-tabs"><button class="input-tab active" onclick="switchInputTab('text')">📄 Paste Text</button><button class="input-tab" onclick="switchInputTab('file')">📎 Upload File</button></div><div id="textInputPanel"><textarea id="questionsInput" placeholder="Paste your questions...&#10;&#10;1. What is the main function of the renal system?&#10;A. Blood filtration&#10;B. Hormone production&#10;C. Digestion&#10;D. Respiration&#10;Correct Answer: A"></textarea></div><div id="fileInputPanel" style="display:none;"><div class="file-upload-zone" id="fileDropZone" onclick="document.getElementById('fileInput').click()" ondragover="handleDragOver(event)" ondrop="handleDrop(event)"><div>📎</div><div>Click or drag file</div></div><input type="file" id="fileInput" accept=".pdf,.docx,.pptx,.txt" style="display:none;" onchange="handleFileUpload(event)"></div><div class="alert alert-error" id="errorMsg"></div><div class="alert alert-success" id="successMsg"></div><div class="btn-row"><button class="btn btn-outline btn-sm" onclick="openCreateFolderModal()">📁 Folder</button><button class="btn btn-primary" onclick="generateQuiz()" style="flex:2;" id="generateBtn">⚡ Generate Quiz</button></div></div></div>
                 <div class="card screen" id="quizScreen"><div class="card-header"><div class="card-title">📋 <span id="quizTitleDisplay">Active Quiz</span></div><div class="timer-display" id="timerDisplay">⏱ --:--</div></div><div class="card-body"><div class="progress-wrap"><div class="progress-info"><span id="qCounter">Q 1/0</span><span id="pctLabel">0%</span></div><div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div></div><div class="question-dots" id="questionDots"></div><div class="question-box"><div class="q-label" id="qLabel">QUESTION 1</div><div class="q-text" id="qText"></div></div><div class="options-list" id="optionsList"></div><div class="answer-feedback" id="answerFeedback"></div><div class="quiz-btns"><button class="btn btn-outline btn-sm" onclick="goToPrevious()" id="prevBtn">← Prev</button><button class="btn btn-primary" id="nextBtn" disabled><span id="nextBtnLbl">Next →</span></button></div></div></div>
-                <div class="card screen" id="browseScreen"><div class="card-header"><div class="card-title">📂 Browse Quizzes</div></div><div class="card-body"><div id="browseFolderSelector" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;"></div><div class="quizzes-grid" id="quizzesGrid"></div></div></div>
+                <div class="card screen" id="browseScreen"><div class="card-header"><div class="card-title">📂 Browse Quizzes</div><button class="btn btn-primary btn-sm" onclick="loadQuizzesFromCloud()">🔄 Refresh</button></div><div class="card-body"><div id="browseFolderSelector" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;"></div><div class="quizzes-grid" id="quizzesGrid"></div><div id="browseLoading" style="text-align:center;padding:20px;display:none;"><span class="loading-spinner"></span> Loading...</div></div></div>
                 <div class="card screen" id="discoverScreen"><div class="card-header"><div class="card-title">🔍 Discover</div><button class="btn btn-primary btn-sm" onclick="generateFromDiscover()">⚡ Generate</button></div><div class="card-body"><div class="discover-filters"><input type="text" class="form-input" id="discoverSearch" placeholder="Search..." oninput="renderDiscover()"><select class="form-input" id="discoverSubjectFilter" onchange="renderDiscover()"><option value="">All Subjects</option></select></div><div class="quizzes-grid" id="discoverGrid"></div></div></div>
                 <div class="card screen" id="resultScreen"><div class="card-header"><div class="card-title">📊 Results</div></div><div class="card-body"><div class="result-layout"><div><div class="result-hero"><div class="score-donut" id="scoreDonut"><div class="score-inner"><div class="score-num" id="scoreNum">0</div><div class="score-denom" id="scoreDenom">/0</div></div></div><div id="gradeBadgeContainer"></div><div class="stats-grid"><div class="stat-card"><div class="stat-val s-correct" id="corrCnt">0</div><div class="stat-lbl">Correct</div></div><div class="stat-card"><div class="stat-val s-wrong" id="wronCnt">0</div><div class="stat-lbl">Wrong</div></div><div class="stat-card"><div class="stat-val s-total" id="totCnt">0</div><div class="stat-lbl">Total</div></div><div class="stat-card"><div class="stat-val" id="timeTaken">—</div><div class="stat-lbl">Time</div></div></div></div><div class="publish-section"><h4>📤 Publish</h4><input type="text" id="publishSpecialty" class="form-input" placeholder="Specialty"><input type="text" id="publishSubject" class="form-input" placeholder="Subject" style="margin-top:4px;"><input type="text" id="publishTopic" class="form-input" placeholder="Topic" style="margin-top:4px;"><button class="btn btn-purple btn-sm" style="margin-top:6px;" onclick="publishFullQuiz()">📤 Publish</button></div></div><div><h4>Answer Review</h4><div class="review-wrap" id="reviewWrap"></div></div></div><div class="result-btns"><button class="btn btn-primary" onclick="restartQuiz()">🔄 Retake</button><button class="btn btn-outline" onclick="switchScreen('inputScreen')">📝 New</button></div></div></div>
                 <div class="card screen" id="leaderboardScreen"><div class="card-header"><div class="card-title">🏆 Leaderboard</div></div><div class="card-body" id="leaderboardContent"></div></div>
@@ -285,7 +278,6 @@
                 <div class="card screen" id="communityScreen"><div class="card-header"><div class="card-title">💬 Sci-Community</div><button class="btn btn-primary btn-sm" onclick="openNewPostModal()">✏️ Post</button></div><div class="card-body"><div id="communityPosts"></div></div></div>
                 <div class="card screen" id="notificationsScreen"><div class="card-header"><div class="card-title">🔔 Notifications</div></div><div class="card-body" id="notificationsContent"></div></div>
                 <div class="card screen" id="aiAssistantScreen"><div class="card-header"><div class="card-title">🤖 AI Assistant</div></div><div class="card-body"><div class="ai-chat-window" id="aiChatWindow"><div class="ai-msg bot">👋 Hello! Ask me about using AMAD.</div></div><div class="ai-input-row"><input type="text" class="form-input" id="aiInput" placeholder="Ask..." onkeydown="if(event.key==='Enter')sendAiMessage()"><button class="btn btn-primary btn-sm" onclick="sendAiMessage()">Send</button></div></div></div>
-                <div class="card screen" id="questionBankScreen"><div class="card-header"><div class="card-title">🏦 Question Bank</div></div><div class="card-body" id="questionBankContent"></div></div>
                 <div class="card screen" id="trashScreen"><div class="card-header"><div class="card-title">🗑️ Trash</div><button class="btn btn-outline btn-sm" onclick="emptyTrash()">Empty</button></div><div class="card-body"><div class="quizzes-grid" id="trashGrid"></div></div></div>
                 <div class="card screen" id="adminScreen"><div class="card-header"><div class="card-title">🛡️ Admin</div><button class="btn btn-outline btn-sm" onclick="exportAdminData()">📥 CSV</button></div><div class="card-body" id="adminContent"></div></div>
             </div>
@@ -293,67 +285,30 @@
     </div>
     <div class="modal-overlay" id="createFolderModal"><div class="modal" style="max-width:380px;"><h3>➕ Create Folder</h3><input type="text" id="newFolderNameInput" class="form-input" placeholder="Folder name"><div class="modal-actions"><button class="btn btn-outline btn-sm" onclick="closeCreateFolderModal()">Cancel</button><button class="btn btn-primary btn-sm" onclick="createNewFolder()">✅ Create</button></div></div></div>
     <div class="modal-overlay" id="shareModal"><div class="modal" style="max-width:500px;"><h3>🔗 Share</h3><div class="share-link-box" id="shareLinkBox">Click Generate</div><div style="display:flex;gap:6px;margin-top:8px;"><button class="btn btn-sm btn-primary" onclick="generateShareLink()">Generate</button><button class="btn btn-sm btn-outline" onclick="copyShareLink()">Copy</button><span class="copy-success" id="copySuccess">✅ Copied!</span></div><div class="modal-actions"><button class="btn btn-outline btn-sm" onclick="closeShareModal()">Close</button></div></div></div>
-    <div class="modal-overlay" id="newPostModal"><div class="modal" style="max-width:480px;"><h3>✏️ New Post</h3><div class="form-group"><label class="form-label">Title</label><input type="text" id="postTitle" class="form-input"></div><div class="form-group"><label class="form-label">Question</label><textarea id="postBody" style="min-height:100px;" class="form-input"></textarea></div><div class="form-group"><label class="form-label">Tags</label><input type="text" id="postTags" class="form-input" placeholder="e.g., ECG"></div><div class="modal-actions"><button class="btn btn-outline btn-sm" onclick="closeNewPostModal()">Cancel</button><button class="btn btn-primary btn-sm" onclick="submitCommunityPost()">Post</button></div></div></div>
-    <div class="modal-overlay" id="recoveryModal"><div class="modal" style="max-width:420px;"><h3>🔑 Account Recovery</h3><p class="modal-sub">Reset your password using your recovery code or email</p><div class="form-group"><label class="form-label">Username</label><input type="text" id="recoveryUser" class="form-input" placeholder="Enter your username"></div><div class="form-group"><label class="form-label">Recovery Code or Email</label><input type="text" id="recoveryCode" class="form-input" placeholder="Enter your recovery code or email"></div><div class="form-group"><label class="form-label">New Password</label><input type="password" id="recoveryNewPassword" class="form-input" placeholder="Enter new password"></div><div class="alert alert-error" id="recoveryError"></div><div class="alert alert-success" id="recoverySuccess"></div><div class="modal-actions"><button class="btn btn-outline btn-sm" onclick="closeRecoveryModal()">Cancel</button><button class="btn btn-primary btn-sm" onclick="doRecovery()">🔄 Reset Password</button></div></div></div>
+    <div class="modal-overlay" id="newPostModal"><div class="modal" style="max-width:480px;"><h3>✏️ New Post</h3><div class="form-group"><label class="form-label">Title</label><input type="text" id="postTitle" class="form-input"></div><div class="form-group"><label class="form-label">Body</label><textarea id="postBody" style="min-height:100px;" class="form-input"></textarea></div><div class="form-group"><label class="form-label">Tags</label><input type="text" id="postTags" class="form-input" placeholder="e.g., ECG, Cardiology"></div><div class="modal-actions"><button class="btn btn-outline btn-sm" onclick="closeNewPostModal()">Cancel</button><button class="btn btn-primary btn-sm" onclick="submitCommunityPost()">Post</button></div></div></div>
     <script>
 // ================================================================
-// AMAD MEDICAL QUIZ PLATFORM — Complete JavaScript v3.0
-// Features: Auth, Recovery, Quiz, Publish, Discover, Community,
-// Leaderboard, Profile, Notifications, AI, Dark Mode, File Upload
-// Admin: MDtoqaaldeekADMIN / MDS1842007
+// AMAD MEDICAL QUIZ PLATFORM — Supabase Edition v4.0
+// Supabase URL: https://krmkthbafcivtwvvdiqn.supabase.co
 // ================================================================
 (function() {
     const $ = id => document.getElementById(id);
 
-    function generateId() { return Date.now().toString(36) + Math.random().toString(36).substr(2, 9); }
-    function getStore(key, fb = '[]') { try { return JSON.parse(localStorage.getItem(key) || fb); } catch (e) { return JSON.parse(fb); } }
-    function setStore(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
-
-    // ===== USER MANAGEMENT =====
-    function getUsers() {
-        let u = localStorage.getItem('amad_users');
-        if (!u) {
-            const init = [{ 
-                username: 'MDtoqaaldeekADMIN', 
-                password: 'MDS1842007', 
-                name: 'Toqa Aldeek', 
-                role: 'admin', 
-                email: 'toqa@amadplatform.com', 
-                recoveryCode: 'AMAD2025',
-                created: Date.now(), 
-                quizCount: 0, 
-                xp: 0, 
-                badges: [] 
-            }];
-            setStore('amad_users', init);
-            return init;
-        }
-        return JSON.parse(u);
-    }
-
-    function getCurrentUser() {
-        let su = sessionStorage.getItem('amad_current_user');
-        if (su) return JSON.parse(su);
-        let rm = localStorage.getItem('amad_remembered_user');
-        if (rm) { let u = JSON.parse(rm); sessionStorage.setItem('amad_current_user', rm); return u; }
-        return null;
-    }
-
-    function getIsGuest() { return sessionStorage.getItem('amad_is_guest') === 'true'; }
+    // ===== SUPABASE CONFIGURATION =====
+    const SUPABASE_URL = 'https://krmkthbafcivtwvvdiqn.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtybWt0aGJhZmNpdnR3dnZkaXFuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzODY2NDcsImV4cCI6MjA5NTk2MjY0N30.pX6eV9wDQOAuwNTfRsDqxxsfrGtAGteNiH4Zeiq082I';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    console.log('🚀 AMAD Supabase Edition Ready');
 
     // ===== GLOBAL STATE =====
     let questionsBank = [], currentIdx = 0, userAnswers = [], selectedOpt = null, answerRevealed = false;
     let quizStartTime = null, quizTimer = null, quizTimeLeft = 0;
-    let currentFolder = '', shareMode = 'questions', generatedShareLink = '';
-    let customFolders = [], savedQuizzes = [], trashItems = [], browseCurrentFolder = '';
+    let currentFolder = '', currentQuizId = null, currentQuizName = '';
+    let customFolders = [], savedQuizzes = [], trashItems = [];
     let subjectTags = [], topicTags = [], currentSubjectTag = '', currentTopicTag = '';
-    let currentQuizName = '', discoverSelected = null, selectedPublishQuestions = [], isDarkMode = false;
-    const questionsInput = $('questionsInput');
+    let isDarkMode = false, currentUser = null, isGuest = false;
 
-    // ===== DARK MODE =====
-    window.toggleDarkMode = function() { isDarkMode = !isDarkMode; document.body.classList.toggle('dark-mode', isDarkMode); localStorage.setItem('amad_dark_mode', isDarkMode); };
-
-    // ===== AUTH =====
+    // ===== AUTH FUNCTIONS =====
     let authTab = 'login', selectedRegRole = 'student';
 
     window.switchAuthTab = function(tab) {
@@ -368,342 +323,948 @@
         document.querySelectorAll('.role-opt').forEach(o => o.classList.remove('selected'));
         el.classList.add('selected');
         selectedRegRole = el.dataset.role;
-        $('customRoleWrap').classList.toggle('show', selectedRegRole === 'custom');
     };
 
-    window.doLogin = function() {
-        let uname = $('loginUser').value.trim();
+    window.doLogin = async function() {
+        let email = $('loginEmail').value.trim();
         let pwd = $('loginPassword').value.trim();
-        if (!uname || !pwd) { showAlert('loginError', 'Please fill all fields.'); return; }
-        let users = getUsers();
-        let user = users.find(u => u.username === uname && u.password === pwd);
-        if (!user) { showAlert('loginError', 'Invalid username or password.'); return; }
-        if ($('rememberMe').checked) localStorage.setItem('amad_remembered_user', JSON.stringify(user));
-        sessionStorage.setItem('amad_current_user', JSON.stringify(user));
-        sessionStorage.removeItem('amad_is_guest');
-        onLoginSuccess(user);
+        if (!email || !pwd) { showAuthError('Please fill all fields.'); return; }
+        $('loginBtn').disabled = true;
+        $('loginBtn').innerHTML = '<span class="loading-spinner"></span> Signing in...';
+        try {
+            const { data, error } = await supabase.auth.signInWithPassword({ email, password: pwd });
+            if (error) throw error;
+            await loadUserProfile(data.user);
+        } catch (err) {
+            showAuthError(err.message);
+            $('loginBtn').disabled = false;
+            $('loginBtn').innerHTML = 'Sign In →';
+        }
+    };
+
+    window.doRegister = async function() {
+        let name = $('regName').value.trim();
+        let email = $('regEmail').value.trim();
+        let pwd = $('regPassword').value.trim();
+        if (!name || !email || !pwd) { showRegError('Please fill all fields.'); return; }
+        if (pwd.length < 6) { showRegError('Password must be at least 6 characters.'); return; }
+        $('regBtn').disabled = true;
+        $('regBtn').innerHTML = '<span class="loading-spinner"></span> Creating...';
+        try {
+            const { data, error } = await supabase.auth.signUp({
+                email, password: pwd,
+                options: { data: { full_name: name, username: email.split('@')[0], role: selectedRegRole } }
+            });
+            if (error) throw error;
+            showRegSuccess('Account created! Check your email to confirm, or sign in now.');
+            setTimeout(() => switchAuthTab('login'), 2000);
+        } catch (err) {
+            showRegError(err.message);
+        } finally {
+            $('regBtn').disabled = false;
+            $('regBtn').innerHTML = 'Create Account →';
+        }
     };
 
     window.loginAsGuest = function() {
-        let guest = { username: 'guest_' + generateId(), password: '', name: 'Guest User', role: 'guest', email: '', recoveryCode: '', created: Date.now(), quizCount: 0, xp: 0, badges: [] };
-        sessionStorage.setItem('amad_is_guest', 'true');
-        sessionStorage.setItem('amad_current_user', JSON.stringify(guest));
-        onLoginSuccess(guest);
+        isGuest = true;
+        currentUser = { id: 'guest', email: 'guest@amad.local', user_metadata: { full_name: 'Guest User', role: 'guest' } };
+        onLoginSuccess();
     };
 
-    window.doRegister = function() {
-        let name = $('regName').value.trim();
-        let uname = $('regUser').value.trim().toLowerCase();
-        let pwd = $('regPassword').value.trim();
-        let pwd2 = $('regPassword2').value.trim();
-        let email = $('regEmail').value.trim();
-        let recoveryCode = $('regRecoveryCode').value.trim();
-        let cr = $('customRoleInput').value.trim();
-        if (!name || !uname || !pwd || !pwd2) { showAlert('regError', 'Please fill all required fields.'); return; }
-        if (pwd.length < 4) { showAlert('regError', 'Password must be at least 4 characters.'); return; }
-        if (pwd !== pwd2) { showAlert('regError', 'Passwords do not match.'); return; }
-        if (selectedRegRole === 'custom' && !cr) { showAlert('regError', 'Please enter your professional title.'); return; }
-        let users = getUsers();
-        if (users.find(u => u.username === uname)) { showAlert('regError', 'Username already taken.'); return; }
-        if (email && users.find(u => u.email === email)) { showAlert('regError', 'Email already registered.'); return; }
-        let fr = selectedRegRole === 'custom' ? cr : selectedRegRole;
-        let nu = { username: uname, password: pwd, name: name, role: fr, email: email, recoveryCode: recoveryCode, created: Date.now(), quizCount: 0, xp: 0, badges: [] };
-        users.push(nu);
-        setStore('amad_users', users);
-        sessionStorage.setItem('amad_current_user', JSON.stringify(nu));
-        sessionStorage.removeItem('amad_is_guest');
-        onLoginSuccess(nu);
-    };
+    async function loadUserProfile(user) {
+        currentUser = user;
+        isGuest = false;
+        try {
+            const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+            if (profile) {
+                currentUser.profile = profile;
+                customFolders = profile.folders || [];
+                if (profile.role === 'admin') $('adminCrown').style.display = 'flex';
+            }
+        } catch (e) {
+            console.log('Profile load warning:', e.message);
+        }
+        onLoginSuccess();
+    }
 
-    // ===== ACCOUNT RECOVERY =====
-    window.showRecoveryModal = function() {
-        $('recoveryUser').value = '';
-        $('recoveryCode').value = '';
-        $('recoveryNewPassword').value = '';
-        $('recoveryError').classList.remove('show');
-        $('recoverySuccess').classList.remove('show');
-        $('recoveryModal').classList.add('show');
-    };
-
-    window.closeRecoveryModal = function() {
-        $('recoveryModal').classList.remove('show');
-    };
-
-    window.doRecovery = function() {
-        let uname = $('recoveryUser').value.trim();
-        let code = $('recoveryCode').value.trim();
-        let newPwd = $('recoveryNewPassword').value.trim();
-        if (!uname || !code || !newPwd) { showRecoveryAlert('recoveryError', 'Fill all fields.'); return; }
-        if (newPwd.length < 4) { showRecoveryAlert('recoveryError', 'Password must be at least 4 characters.'); return; }
-        let users = getUsers();
-        let user = users.find(u => u.username === uname);
-        if (!user) { showRecoveryAlert('recoveryError', 'Username not found.'); return; }
-        if (user.recoveryCode !== code && user.email !== code) { showRecoveryAlert('recoveryError', 'Invalid recovery code or email.'); return; }
-        user.password = newPwd;
-        setStore('amad_users', users);
-        showRecoveryAlert('recoverySuccess', 'Password reset successfully! You can now sign in.');
-        $('recoverySuccess').classList.add('show');
-        setTimeout(() => { closeRecoveryModal(); }, 2000);
-    };
-
-    function showRecoveryAlert(id, msg) { let el = $(id); if (el) { el.textContent = '❌ ' + msg; el.classList.add('show'); setTimeout(() => el.classList.remove('show'), 3500); } }
-    function showAlert(id, msg) { let el = $(id); if (!el) return; el.textContent = '❌ ' + msg; el.classList.add('show'); setTimeout(() => el.classList.remove('show'), 3500); }
-
-    function onLoginSuccess(user) {
+    function onLoginSuccess() {
         $('authWrapper').style.display = 'none';
         $('appBody').style.display = 'flex';
-        let initials = user.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+        let name = currentUser.user_metadata?.full_name || currentUser.email || 'User';
+        let initials = name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
         $('userAvatar').textContent = initials;
-        $('userDisplayName').textContent = user.name;
-        let isGuest = getIsGuest();
-        let rd = user.role;
-        if (user.role === 'admin') rd = 'Administrator';
-        else if (user.role === 'doctor') rd = 'Physician';
-        else if (user.role === 'student') rd = 'Medical Student';
-        else if (isGuest) rd = 'Guest';
-        $('userDisplayRole').textContent = rd;
+        $('userDisplayName').textContent = name;
+        let role = currentUser.user_metadata?.role || 'student';
+        if (role === 'admin') { $('adminCrown').style.display = 'flex'; $('navAdmin').style.display = 'flex'; }
+        $('userDisplayRole').textContent = role.charAt(0).toUpperCase() + role.slice(1);
         if (isGuest) $('userDisplayRole').innerHTML += ' <span class="guest-badge">Limited</span>';
-        if (user.role === 'admin') { $('adminCrown').style.display = 'flex'; $('navAdmin').style.display = 'flex'; $('navQuestionBank').style.display = 'flex'; }
-        if (!isGuest) {
-            let sv = localStorage.getItem('amad_saved_questions_' + user.username); if (sv && questionsInput) questionsInput.value = sv;
-            customFolders = getStore('amad_folders_' + user.username);
-            savedQuizzes = getStore('amad_saved_quizzes_' + user.username);
-            trashItems = getStore('amad_trash_' + user.username);
-        } else { customFolders = []; savedQuizzes = []; trashItems = []; if ($('navTrash')) $('navTrash').style.display = 'none'; }
-        subjectTags = getStore('amad_subject_tags');
-        topicTags = getStore('amad_topic_tags');
         if (localStorage.getItem('amad_dark_mode') === 'true') { isDarkMode = true; document.body.classList.add('dark-mode'); }
-        cleanTrash(); renderFolderList(); updateResumeUI(); switchScreen('inputScreen'); renderTagInputs();
-        if (questionsInput) questionsInput.focus();
+        switchScreen('inputScreen');
+        loadLocalData();
     }
 
-    window.doLogout = function() { if (confirm('Sign out?')) { sessionStorage.removeItem('amad_current_user'); sessionStorage.removeItem('amad_is_guest'); localStorage.removeItem('amad_remembered_user'); location.reload(); } };
+    window.doLogout = async function() {
+        if (!isGuest) await supabase.auth.signOut();
+        currentUser = null; isGuest = false;
+        sessionStorage.clear();
+        location.reload();
+    };
 
-    // ===== TAG SYSTEM =====
-    function renderTagInputs() {
-        if (!$('subjectTagWrap')) return;
-        $('subjectTagWrap').innerHTML = currentSubjectTag ? `<span class="tag-chip">${currentSubjectTag} <span class="tag-remove" onclick="currentSubjectTag='';renderTagInputs();">×</span></span>` : `<input type="text" class="tag-input-inner" id="subjectTagInput" placeholder="e.g., Physiology..." onkeydown="handleTagKey(event,'subject')">`;
-        $('topicTagWrap').innerHTML = currentTopicTag ? `<span class="tag-chip">${currentTopicTag} <span class="tag-remove" onclick="currentTopicTag='';renderTagInputs();">×</span></span>` : `<input type="text" class="tag-input-inner" id="topicTagInput" placeholder="e.g., Renal System..." onkeydown="handleTagKey(event,'topic')">`;
+    // ===== CLOUD DATA FUNCTIONS =====
+    async function saveQuizToCloud() {
+        if (isGuest || !currentUser) return null;
+        let raw = $('questionsInput')?.value || '';
+        if (!raw.trim()) return null;
+        try {
+            const quizData = {
+                user_id: currentUser.id,
+                title: currentQuizName || 'Untitled Quiz',
+                folder: currentFolder || 'Uncategorized',
+                subject_tag: currentSubjectTag,
+                topic_tag: currentTopicTag,
+                questions_raw: raw,
+                question_count: questionsBank.length
+            };
+            const { data, error } = await supabase.from('quizzes').insert(quizData).select();
+            if (error) throw error;
+            currentQuizId = data[0].id;
+            return data[0];
+        } catch (e) {
+            console.error('Save quiz error:', e);
+            return null;
+        }
     }
 
-    window.handleTagKey = function(e, type) {
-        if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); let input = type === 'subject' ? $('subjectTagInput') : $('topicTagInput'); if (!input) return; let val = input.value.trim(); if (val) { if (type === 'subject') { currentSubjectTag = val; if (!subjectTags.includes(val)) { subjectTags.push(val); setStore('amad_subject_tags', subjectTags); } } else { currentTopicTag = val; if (!topicTags.includes(val)) { topicTags.push(val); setStore('amad_topic_tags', topicTags); } } renderTagInputs(); } }
+    window.loadQuizzesFromCloud = async function() {
+        if (isGuest || !currentUser) { renderBrowseScreen(); return; }
+        $('browseLoading').style.display = 'block';
+        try {
+            const { data, error } = await supabase.from('quizzes')
+                .select('*').eq('user_id', currentUser.id).is('deleted_at', null)
+                .order('created_at', { ascending: false });
+            if (error) throw error;
+            savedQuizzes = data || [];
+        } catch (e) {
+            console.error('Load quizzes error:', e);
+        }
+        $('browseLoading').style.display = 'none';
+        renderBrowseScreen();
+    };
+
+    async function saveQuizAttempt(score, total, correct, wrong, timeTaken, xpEarned) {
+        if (isGuest || !currentUser) return;
+        try {
+            const attemptData = {
+                user_id: currentUser.id,
+                quiz_id: currentQuizId,
+                quiz_title: currentQuizName,
+                score: Math.round((correct / total) * 100),
+                total_questions: total,
+                correct_answers: correct,
+                wrong_answers: wrong,
+                time_taken: timeTaken,
+                answers: userAnswers,
+                xp_earned: xpEarned
+            };
+            await supabase.from('quiz_attempts').insert(attemptData);
+            await addXP(xpEarned, 'quiz_completion', `Completed quiz: ${currentQuizName}`);
+        } catch (e) {
+            console.error('Save attempt error:', e);
+        }
+    }
+
+    async function addXP(amount, source, description) {
+        if (isGuest || !currentUser) return;
+        try {
+            await supabase.from('user_xp_log').insert({
+                user_id: currentUser.id, amount, source, description
+            });
+            const { data: profile } = await supabase.from('profiles').select('xp').eq('id', currentUser.id).single();
+            const newXP = (profile?.xp || 0) + amount;
+            await supabase.from('profiles').update({ xp: newXP }).eq('id', currentUser.id);
+            await supabase.rpc('update_streak', { p_user_id: currentUser.id });
+        } catch (e) {
+            console.error('XP error:', e);
+        }
+    }
+
+    async function publishQuizToCloud(specialty, subject, topic) {
+        if (isGuest || !currentUser) return;
+        let raw = questionsBank.map((q, i) => `${q.question}\n${q.options.map((o,oi)=>`${String.fromCharCode(65+oi)}) ${o}`).join('\n')}\nCorrect Answer: ${String.fromCharCode(65+q.correctAnswer)}`).join('\n\n');
+        try {
+            await supabase.from('published_quizzes').insert({
+                quiz_id: currentQuizId,
+                user_id: currentUser.id,
+                title: currentQuizName,
+                question_count: questionsBank.length,
+                specialty, subject, topic,
+                questions_raw: raw,
+                published_by: currentUser.email
+            });
+            await addXP(15, 'publish_quiz', `Published: ${currentQuizName}`);
+            showSuccess('Published successfully!');
+        } catch (e) {
+            showError('Publish failed: ' + e.message);
+        }
+    }
+
+    async function loadPublishedQuizzes() {
+        try {
+            const { data, error } = await supabase.from('published_quizzes')
+                .select('*').order('published_at', { ascending: false });
+            if (error) throw error;
+            return data || [];
+        } catch (e) {
+            console.error('Load published error:', e);
+            return [];
+        }
+    }
+
+    async function rateQuizOnCloud(quizId, rating) {
+        if (isGuest || !currentUser) return;
+        try {
+            await supabase.from('quiz_ratings').upsert({
+                quiz_id: quizId, user_id: currentUser.id, rating
+            }, { onConflict: 'quiz_id,user_id' });
+        } catch (e) {
+            console.error('Rating error:', e);
+        }
+    }
+
+    async function softDeleteQuizOnCloud(quizId) {
+        if (isGuest) return;
+        try {
+            await supabase.from('quizzes').update({ deleted_at: new Date().toISOString() }).eq('id', quizId);
+        } catch (e) {
+            console.error('Delete error:', e);
+        }
+    }
+
+    async function saveMistakesToCloud() {
+        if (isGuest || !currentUser) return;
+        for (let i = 0; i < questionsBank.length; i++) {
+            if (userAnswers[i] !== null && userAnswers[i] !== questionsBank[i].correctAnswer) {
+                try {
+                    await supabase.from('mistakes').insert({
+                        user_id: currentUser.id,
+                        quiz_id: currentQuizId,
+                        question_text: questionsBank[i].question,
+                        subject_tag: currentSubjectTag || 'General',
+                        topic_tag: currentTopicTag || 'General',
+                        selected_answer: String.fromCharCode(65 + userAnswers[i]),
+                        correct_answer: String.fromCharCode(65 + questionsBank[i].correctAnswer)
+                    });
+                } catch (e) {
+                    console.error('Save mistake error:', e);
+                }
+            }
+        }
+    }
+
+    async function loadLeaderboardFromCloud() {
+        try {
+            const { data, error } = await supabase.from('profiles')
+                .select('full_name, xp, role')
+                .neq('role', 'admin')
+                .order('xp', { ascending: false })
+                .limit(20);
+            if (error) throw error;
+            return data || [];
+        } catch (e) {
+            return [];
+        }
+    }
+
+    // ===== LOCAL DATA FUNCTIONS =====
+    function loadLocalData() {
+        subjectTags = JSON.parse(localStorage.getItem('amad_subject_tags') || '[]');
+        topicTags = JSON.parse(localStorage.getItem('amad_topic_tags') || '[]');
+        if (!isGuest) {
+            customFolders = JSON.parse(localStorage.getItem('amad_folders_' + currentUser.id) || '[]');
+            trashItems = JSON.parse(localStorage.getItem('amad_trash_' + currentUser.id) || '[]');
+        }
+        renderFolderList();
+        renderTagInputs();
+        updateResumeUI();
+    }
+
+    function saveLocalTrash() {
+        if (!isGuest && currentUser) {
+            localStorage.setItem('amad_trash_' + currentUser.id, JSON.stringify(trashItems));
+        }
+    }
+
+    // ===== UTILITY FUNCTIONS =====
+    function showAuthError(msg) {
+        $('loginError').textContent = '❌ ' + msg;
+        $('loginError').classList.add('show');
+        setTimeout(() => $('loginError').classList.remove('show'), 4000);
+    }
+
+    function showRegError(msg) {
+        $('regError').textContent = '❌ ' + msg;
+        $('regError').classList.add('show');
+        setTimeout(() => $('regError').classList.remove('show'), 4000);
+    }
+
+    function showRegSuccess(msg) {
+        $('regSuccess').textContent = '✅ ' + msg;
+        $('regSuccess').classList.add('show');
+        setTimeout(() => $('regSuccess').classList.remove('show'), 4000);
+    }
+
+    function showError(msg) {
+        let e = $('errorMsg');
+        if (e) { e.innerHTML = '❌ ' + msg; e.classList.add('show'); setTimeout(() => e.classList.remove('show'), 4000); }
+    }
+
+    function showSuccess(msg) {
+        let s = $('successMsg');
+        if (s) { s.innerHTML = '✅ ' + msg; s.classList.add('show'); setTimeout(() => s.classList.remove('show'), 3000); }
+    }
+
+    window.toggleDarkMode = function() {
+        isDarkMode = !isDarkMode;
+        document.body.classList.toggle('dark-mode', isDarkMode);
+        localStorage.setItem('amad_dark_mode', isDarkMode);
     };
 
     // ===== SMART PARSER =====
     function ultraParse(raw) {
         raw = raw.trim(); if (!raw) return { error: 'Please paste your questions first.' };
         raw = raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-        if (!raw.includes('\n\n')) { raw = raw.replace(/(\d+[\).\s]+)/g, '\n\n$1'); raw = raw.replace(/(Q\d+[\).\s:]+)/gi, '\n\n$1'); }
-        let blocks = raw.split(/\n\s*\n/).filter(b => b.trim()); if (blocks.length < 2) blocks = raw.split(/(?=\d+[\).\s])/).filter(b => b.trim());
+        let blocks = raw.split(/\n\s*\n/).filter(b => b.trim());
+        if (blocks.length < 2) blocks = raw.split(/(?=\d+[\).\s])/).filter(b => b.trim());
         if (!blocks.length) return { error: 'No questions detected.' };
         let qs = [];
         for (let bi = 0; bi < blocks.length; bi++) {
-            let lines = blocks[bi].trim().split('\n').map(l => l.trim()).filter(l => l); if (lines.length < 2) continue;
-            let qt = lines[0].replace(/^(\d+[\).\s]+|Q\d+[\).\s:]+|\(\d+\)\s*|سؤال\s*\d+[\).\s:]*|س:\s*)/i, '').trim() || lines[0];
-            let oi = 1; if (lines.length > 1 && !/^[A-Da-d][\).\s]/.test(lines[1]) && !/^(correct\s*)?answer\s*:/i.test(lines[1]) && !/^✅/i.test(lines[1]) && !/^الجواب/i.test(lines[1])) { qt += ' ' + lines[1]; oi = 2; }
-            let opts = [], cl = '', ci = -1;
+            let lines = blocks[bi].trim().split('\n').map(l => l.trim()).filter(l => l);
+            if (lines.length < 2) continue;
+            let qt = lines[0].replace(/^(\d+[\).\s]+|Q\d+[\).\s:]+)/i, '').trim() || lines[0];
+            let opts = [], cl = '', ci = -1, oi = 1;
             for (let i = oi; i < lines.length; i++) {
                 let line = lines[i];
-                let am = line.match(/^Correct\s*Answer\s*:\s*([A-Da-d])/i) || line.match(/^Answer\s*:\s*([A-Da-d])/i) || line.match(/^Ans\s*:\s*([A-Da-d])/i) || line.match(/^الجواب\s*:\s*([أ-دA-Da-d])/i) || line.match(/^✅\s*([A-Da-d])/i) || line.match(/^✓\s*([A-Da-d])/i);
-                if (am) { cl = am[1].toUpperCase(); let arm = { 'أ': 'A', 'ب': 'B', 'ج': 'C', 'د': 'D' }; if (arm[cl]) cl = arm[cl]; continue; }
-                let om = line.match(/^([A-Da-d])[\).\s]+(.+)/) || line.match(/^\(([A-Da-d])\)\s*(.+)/);
+                let am = line.match(/^Correct\s*Answer\s*:\s*([A-Da-d])/i) || line.match(/^Answer\s*:\s*([A-Da-d])/i);
+                if (am) { cl = am[1].toUpperCase(); continue; }
+                let om = line.match(/^([A-Da-d])[\).\s]+(.+)/);
                 if (om) { opts.push({ letter: om[1].toUpperCase(), text: om[2].replace(/[✅✓]\s*$/i, '').trim() }); }
-                else if (line.length < 200) { opts.push({ letter: String.fromCharCode(65 + opts.length), text: line }); }
             }
-            if (cl) ci = opts.findIndex(o => o.letter === cl); if (ci === -1 && opts.length === 1) ci = 0;
+            if (!cl && opts.length === 4) cl = 'A';
+            if (cl) ci = opts.findIndex(o => o.letter === cl);
             if (ci === -1) return { error: `Q#${bi+1}: Cannot determine answer. Use "Correct Answer: A".` };
             if (opts.length < 2) return { error: `Q#${bi+1}: Need at least 2 options.` };
             qs.push({ id: bi + 1, question: qt, options: opts.map(o => o.text), optionsLetters: opts.map(o => o.letter), correctAnswer: ci });
         }
-        if (!qs.length) return { error: 'No valid questions found.' }; return { questions: qs };
+        if (!qs.length) return { error: 'No valid questions found.' };
+        return { questions: qs };
     }
 
     // ===== SCREEN NAVIGATION =====
     window.switchScreen = function(name, navBtn) {
         document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
-        let labels = { inputScreen: 'New Quiz', quizScreen: 'Active Quiz', resultScreen: 'Results', adminScreen: 'Admin Panel', browseScreen: 'Browse', discoverScreen: 'Discover', trashScreen: 'Trash', communityScreen: 'Sci-Community', aiAssistantScreen: 'AI Assistant', questionBankScreen: 'Question Bank', profileScreen: 'My Profile', leaderboardScreen: 'Leaderboard', notificationsScreen: 'Notifications' };
+        let labels = { inputScreen: 'New Quiz', quizScreen: 'Active Quiz', resultScreen: 'Results', adminScreen: 'Admin Panel', browseScreen: 'Browse', discoverScreen: 'Discover', trashScreen: 'Trash', communityScreen: 'Sci-Community', aiAssistantScreen: 'AI Assistant', profileScreen: 'My Profile', leaderboardScreen: 'Leaderboard', notificationsScreen: 'Notifications' };
         let el = $(name); if (el) el.classList.add('active');
         $('breadcrumbPage').textContent = labels[name] || name;
-        document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active')); if (navBtn) navBtn.classList.add('active');
-        if (name === 'adminScreen') renderAdminPanel(); if (name === 'browseScreen') renderBrowseScreen();
-        if (name === 'discoverScreen') renderDiscover(); if (name === 'trashScreen') renderTrash();
-        if (name === 'communityScreen') renderCommunityPosts(); if (name === 'questionBankScreen') renderQuestionBank();
-        if (name === 'profileScreen') renderProfileScreen(); if (name === 'leaderboardScreen') renderLeaderboard();
+        document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+        if (navBtn) navBtn.classList.add('active');
+        if (name === 'browseScreen') loadQuizzesFromCloud();
+        if (name === 'discoverScreen') renderDiscover();
+        if (name === 'trashScreen') renderTrash();
+        if (name === 'communityScreen') renderCommunityPosts();
+        if (name === 'profileScreen') renderProfileScreen();
+        if (name === 'leaderboardScreen') renderLeaderboard();
         if (name === 'notificationsScreen') renderNotifications();
+        if (name === 'adminScreen') renderAdminPanel();
+    };
+
+    // ===== TAG SYSTEM =====
+    function renderTagInputs() {
+        $('subjectTagWrap').innerHTML = currentSubjectTag ? `<span class="tag-chip">${currentSubjectTag} <span class="tag-remove" onclick="currentSubjectTag='';renderTagInputs();">×</span></span>` : `<input type="text" class="tag-input-inner" id="subjectTagInput" placeholder="e.g., Physiology..." onkeydown="handleTagKey(event,'subject')">`;
+        $('topicTagWrap').innerHTML = currentTopicTag ? `<span class="tag-chip">${currentTopicTag} <span class="tag-remove" onclick="currentTopicTag='';renderTagInputs();">×</span></span>` : `<input type="text" class="tag-input-inner" id="topicTagInput" placeholder="e.g., Renal System..." onkeydown="handleTagKey(event,'topic')">`;
+    }
+
+    window.handleTagKey = function(e, type) {
+        if (e.key === 'Enter' || e.key === ',') {
+            e.preventDefault();
+            let input = type === 'subject' ? $('subjectTagInput') : $('topicTagInput');
+            if (!input) return;
+            let val = input.value.trim();
+            if (val) {
+                if (type === 'subject') { currentSubjectTag = val; if (!subjectTags.includes(val)) { subjectTags.push(val); localStorage.setItem('amad_subject_tags', JSON.stringify(subjectTags)); } }
+                else { currentTopicTag = val; if (!topicTags.includes(val)) { topicTags.push(val); localStorage.setItem('amad_topic_tags', JSON.stringify(topicTags)); } }
+                renderTagInputs();
+            }
+        }
     };
 
     // ===== GENERATE QUIZ =====
-    window.generateQuiz = function() {
-        let raw = questionsInput ? questionsInput.value : '';
+    window.generateQuiz = async function() {
+        let raw = $('questionsInput')?.value || '';
         let qn = ($('quizNameInput')?.value?.trim()) || 'Untitled Quiz';
-        let result = ultraParse(raw); if (result.error) { showError(result.error); return; }
-        questionsBank = result.questions; currentQuizName = qn;
-        let cu = getCurrentUser(); if (cu && !getIsGuest()) { if (questionsInput) localStorage.setItem('amad_saved_questions_' + cu.username, questionsInput.value); autoSaveQuiz(); addToGlobalQuestionBank(result.questions); }
-        showSuccess(questionsBank.length + ' questions parsed!'); quizStartTime = Date.now();
+        let result = ultraParse(raw);
+        if (result.error) { showError(result.error); return; }
+        questionsBank = result.questions;
+        currentQuizName = qn;
+        currentQuizId = null;
+        showSuccess(questionsBank.length + ' questions parsed!');
+        quizStartTime = Date.now();
+        let saved = await saveQuizToCloud();
+        if (saved) currentQuizId = saved.id;
         setTimeout(() => { switchScreen('quizScreen'); initQuiz(); }, 300);
     };
 
-    function initQuiz() { currentIdx = 0; userAnswers = new Array(questionsBank.length).fill(null); answerRevealed = false; selectedOpt = null; $('quizTitleDisplay').textContent = currentQuizName; renderQuestion(); startTimer(); }
+    // ===== QUIZ TAKING =====
+    function initQuiz() {
+        currentIdx = 0;
+        userAnswers = new Array(questionsBank.length).fill(null);
+        answerRevealed = false;
+        selectedOpt = null;
+        $('quizTitleDisplay').textContent = currentQuizName;
+        renderQuestion();
+        startTimer();
+        saveProgress();
+    }
 
     function renderQuestion() {
         if (!questionsBank.length || !$('optionsList')) return;
-        let q = questionsBank[currentIdx]; selectedOpt = userAnswers[currentIdx]; answerRevealed = selectedOpt !== null;
+        let q = questionsBank[currentIdx];
+        selectedOpt = userAnswers[currentIdx];
+        answerRevealed = selectedOpt !== null;
         let letters = q.optionsLetters || ['A', 'B', 'C', 'D'];
-        $('qLabel').textContent = 'QUESTION ' + (currentIdx + 1); $('qText').textContent = q.question;
+        $('qLabel').textContent = 'QUESTION ' + (currentIdx + 1);
+        $('qText').textContent = q.question;
         $('qCounter').textContent = `Q ${currentIdx+1}/${questionsBank.length}`;
         $('progressFill').style.width = ((currentIdx / questionsBank.length) * 100) + '%';
         $('pctLabel').textContent = Math.round((currentIdx / questionsBank.length) * 100) + '%';
         $('optionsList').innerHTML = '';
         q.options.forEach((opt, idx) => {
-            let div = document.createElement('div'); div.className = 'opt-card';
-            let isCorrect = idx === q.correctAnswer; let isSelected = selectedOpt === idx;
-            if (answerRevealed) { div.style.cursor = 'default'; if (isCorrect) div.classList.add('revealed-correct'); if (isSelected && !isCorrect) div.classList.add('revealed-wrong'); }
-            else { if (isSelected) div.classList.add('selected'); div.addEventListener('click', () => selectOption(idx)); }
-            let bh = ''; if (answerRevealed) { if (isCorrect) bh = '<span class="opt-badge badge-correct">✓</span>'; else if (isSelected && !isCorrect) bh = '<span class="opt-badge badge-wrong">✗</span>'; }
+            let div = document.createElement('div');
+            div.className = 'opt-card';
+            let isCorrect = idx === q.correctAnswer;
+            let isSelected = selectedOpt === idx;
+            if (answerRevealed) {
+                div.style.cursor = 'default';
+                if (isCorrect) div.classList.add('revealed-correct');
+                if (isSelected && !isCorrect) div.classList.add('revealed-wrong');
+            } else {
+                if (isSelected) div.classList.add('selected');
+                div.addEventListener('click', () => selectOption(idx));
+            }
+            let bh = '';
+            if (answerRevealed) {
+                if (isCorrect) bh = '<span class="opt-badge badge-correct">✓</span>';
+                else if (isSelected && !isCorrect) bh = '<span class="opt-badge badge-wrong">✗</span>';
+            }
             div.innerHTML = `<span class="opt-indicator">${letters[idx]||String.fromCharCode(65+idx)}</span><span class="opt-text">${opt}</span>${bh}`;
-            if (answerRevealed) { let ind = div.querySelector('.opt-indicator'); if (isCorrect) { ind.style.background = 'var(--success)'; ind.style.color = 'white'; } else if (isSelected && !isCorrect) { ind.style.background = 'var(--danger)'; ind.style.color = 'white'; } }
+            if (answerRevealed) {
+                let ind = div.querySelector('.opt-indicator');
+                if (isCorrect) { ind.style.background = 'var(--success)'; ind.style.color = 'white'; }
+                else if (isSelected && !isCorrect) { ind.style.background = 'var(--danger)'; ind.style.color = 'white'; }
+            }
             $('optionsList').appendChild(div);
         });
-        let fb = $('answerFeedback'); if (answerRevealed && selectedOpt !== null) { let ic = selectedOpt === q.correctAnswer; fb.className = 'answer-feedback ' + (ic ? 'feedback-correct' : 'feedback-wrong') + ' show'; fb.innerHTML = ic ? '✅ <b>Correct!</b>' : `❌ <b>Incorrect.</b> Answer: <b>${letters[q.correctAnswer]}) ${q.options[q.correctAnswer]}</b>`; } else fb.className = 'answer-feedback';
-        let dots = ''; for (let i = 0; i < questionsBank.length; i++) { let cls = 'question-dot'; if (i === currentIdx) cls += ' current'; else if (userAnswers[i] !== null) cls += userAnswers[i] === questionsBank[i].correctAnswer ? ' dot-correct' : ' dot-wrong'; dots += `<div class="${cls}" onclick="jumpToQuestion(${i})">${i+1}</div>`; }
+        let fb = $('answerFeedback');
+        if (answerRevealed && selectedOpt !== null) {
+            let ic = selectedOpt === q.correctAnswer;
+            fb.className = 'answer-feedback ' + (ic ? 'feedback-correct' : 'feedback-wrong') + ' show';
+            fb.innerHTML = ic ? '✅ <b>Correct!</b>' : `❌ <b>Incorrect.</b> Answer: <b>${letters[q.correctAnswer]}) ${q.options[q.correctAnswer]}</b>`;
+        } else fb.className = 'answer-feedback';
+        let dots = '';
+        for (let i = 0; i < questionsBank.length; i++) {
+            let cls = 'question-dot';
+            if (i === currentIdx) cls += ' current';
+            else if (userAnswers[i] !== null) cls += userAnswers[i] === questionsBank[i].correctAnswer ? ' dot-correct' : ' dot-wrong';
+            dots += `<div class="${cls}" onclick="jumpToQuestion(${i})">${i+1}</div>`;
+        }
         $('questionDots').innerHTML = dots;
         $('prevBtn').style.display = currentIdx === 0 ? 'none' : 'inline-flex';
-        if (currentIdx === questionsBank.length - 1) { $('nextBtnLbl').textContent = '✓ Finish'; $('nextBtn').className = 'btn btn-success'; } else { $('nextBtnLbl').textContent = 'Next →'; $('nextBtn').className = 'btn btn-primary'; }
-        $('nextBtn').disabled = selectedOpt === null; saveProgress();
+        if (currentIdx === questionsBank.length - 1) {
+            $('nextBtnLbl').textContent = '✓ Finish';
+            $('nextBtn').className = 'btn btn-success';
+        } else {
+            $('nextBtnLbl').textContent = 'Next →';
+            $('nextBtn').className = 'btn btn-primary';
+        }
+        $('nextBtn').disabled = selectedOpt === null;
     }
 
     window.jumpToQuestion = function(idx) { currentIdx = idx; renderQuestion(); };
-    function selectOption(idx) { if (answerRevealed) return; selectedOpt = idx; userAnswers[currentIdx] = idx; answerRevealed = true; renderQuestion(); $('nextBtn').disabled = false; saveProgress(); }
-    window.goNext = function() { if (currentIdx < questionsBank.length - 1) { currentIdx++; renderQuestion(); } else finishQuiz(); };
+
+    function selectOption(idx) {
+        if (answerRevealed) return;
+        selectedOpt = idx;
+        userAnswers[currentIdx] = idx;
+        answerRevealed = true;
+        renderQuestion();
+        $('nextBtn').disabled = false;
+        saveProgress();
+    }
+
+    window.goNext = function() {
+        if (currentIdx < questionsBank.length - 1) { currentIdx++; renderQuestion(); }
+        else finishQuiz();
+    };
+
     window.goToPrevious = function() { if (currentIdx > 0) { currentIdx--; renderQuestion(); } };
 
-    function startTimer() { if (quizTimer) clearInterval(quizTimer); quizTimeLeft = questionsBank.length * 60; updateTimerDisplay(); quizTimer = setInterval(() => { quizTimeLeft--; if (quizTimeLeft <= 0) { clearInterval(quizTimer); finishQuiz(); } updateTimerDisplay(); }, 1000); }
-    function updateTimerDisplay() { let m = Math.floor(quizTimeLeft / 60), s = quizTimeLeft % 60; $('timerDisplay').textContent = '⏱ ' + m + ':' + s.toString().padStart(2, '0'); if (quizTimeLeft < 60) $('timerDisplay').classList.add('urgent'); }
+    function startTimer() {
+        if (quizTimer) clearInterval(quizTimer);
+        quizTimeLeft = questionsBank.length * 60;
+        updateTimerDisplay();
+        quizTimer = setInterval(() => {
+            quizTimeLeft--;
+            if (quizTimeLeft <= 0) { clearInterval(quizTimer); finishQuiz(); }
+            updateTimerDisplay();
+        }, 1000);
+    }
 
-    function saveProgress() { if (!questionsBank.length || getIsGuest()) return; setStore('amad_quiz_progress', { questionCount: questionsBank.length, currentIndex: currentIdx, answers: userAnswers, folder: currentFolder, questionsRaw: questionsInput ? questionsInput.value : '', quizName: currentQuizName }); updateResumeUI(); }
-    function updateResumeUI() { let p = getStore('amad_quiz_progress', 'null'); if (p && p.questionCount && p.answers && p.answers.some(a => a !== null)) { $('resumeBanner').classList.add('show'); $('resumeDetails').textContent = `${p.answers.filter(a=>a!==null).length}/${p.questionCount} answered`; $('resumeBadge').style.display = 'inline-block'; } else { $('resumeBanner').classList.remove('show'); $('resumeBadge').style.display = 'none'; } }
-    window.resumeQuiz = function() { let p = getStore('amad_quiz_progress', 'null'); if (!p || !p.questionsRaw) return; if (questionsInput) questionsInput.value = p.questionsRaw; currentFolder = p.folder || ''; currentQuizName = p.quizName || ''; let r = ultraParse(p.questionsRaw); if (r.error) { showError('Could not parse.'); return; } questionsBank = r.questions; userAnswers = p.answers || []; currentIdx = p.currentIndex || 0; quizStartTime = Date.now(); switchScreen('quizScreen'); renderQuestion(); $('resumeBanner').classList.remove('show'); };
-    window.discardProgress = function() { if (confirm('Discard?')) { localStorage.removeItem('amad_quiz_progress'); questionsBank = []; $('resumeBanner').classList.remove('show'); switchScreen('inputScreen'); } };
+    function updateTimerDisplay() {
+        let m = Math.floor(quizTimeLeft / 60), s = quizTimeLeft % 60;
+        $('timerDisplay').textContent = '⏱ ' + m + ':' + s.toString().padStart(2, '0');
+        if (quizTimeLeft < 60) $('timerDisplay').classList.add('urgent');
+    }
+
+    function saveProgress() {
+        if (!questionsBank.length) return;
+        let progress = {
+            questionCount: questionsBank.length,
+            currentIndex: currentIdx,
+            answers: userAnswers,
+            quizName: currentQuizName,
+            questionsRaw: $('questionsInput')?.value || ''
+        };
+        localStorage.setItem('amad_quiz_progress', JSON.stringify(progress));
+        updateResumeUI();
+    }
+
+    function updateResumeUI() {
+        let p = JSON.parse(localStorage.getItem('amad_quiz_progress') || 'null');
+        if (p && p.questionCount && p.answers && p.answers.some(a => a !== null)) {
+            $('resumeBanner').classList.add('show');
+            $('resumeDetails').textContent = `${p.answers.filter(a=>a!==null).length}/${p.questionCount} answered`;
+            $('resumeBadge').style.display = 'inline-block';
+        } else {
+            $('resumeBanner').classList.remove('show');
+            $('resumeBadge').style.display = 'none';
+        }
+    }
+
+    window.resumeQuiz = function() {
+        let p = JSON.parse(localStorage.getItem('amad_quiz_progress') || 'null');
+        if (!p || !p.questionsRaw) return;
+        $('questionsInput').value = p.questionsRaw;
+        currentQuizName = p.quizName || '';
+        let r = ultraParse(p.questionsRaw);
+        if (r.error) { showError('Could not parse.'); return; }
+        questionsBank = r.questions;
+        userAnswers = p.answers || [];
+        currentIdx = p.currentIndex || 0;
+        quizStartTime = Date.now();
+        switchScreen('quizScreen');
+        renderQuestion();
+        $('resumeBanner').classList.remove('show');
+    };
+
+    window.discardProgress = function() {
+        if (confirm('Discard?')) {
+            localStorage.removeItem('amad_quiz_progress');
+            questionsBank = [];
+            $('resumeBanner').classList.remove('show');
+            switchScreen('inputScreen');
+        }
+    };
 
     // ===== FINISH QUIZ =====
-    function finishQuiz() {
+    async function finishQuiz() {
         if (quizTimer) clearInterval(quizTimer);
-        let tt = Math.round((Date.now() - quizStartTime) / 1000), ts = Math.floor(tt / 60) + 'm ' + (tt % 60) + 's';
-        let correct = 0, letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
-        let reviewHTML = questionsBank.map((q, i) => { let ua = userAnswers[i]; if (ua === q.correctAnswer) correct++; let ul = ua !== null ? (q.optionsLetters?.[ua] || String.fromCharCode(65 + ua)) : '—'; let cl = q.optionsLetters?.[q.correctAnswer] || String.fromCharCode(65 + q.correctAnswer); return `<div class="review-item ${ua===q.correctAnswer?'r-correct':'r-wrong'}"><div class="review-q">${i+1}. ${q.question}</div><div class="review-a">Your: <span class="${ua===q.correctAnswer?'txt-correct':'txt-wrong'}">${ul}) ${q.options[ua]||'—'}</span> | Correct: <span class="txt-correct">${cl}) ${q.options[q.correctAnswer]}</span></div></div>`; }).join('');
-        let total = questionsBank.length, pct = Math.round((correct / total) * 100);
-        $('scoreNum').textContent = correct; $('scoreDenom').textContent = '/ ' + total; $('scoreDonut').style.setProperty('--score-deg', (correct / total) * 360 + 'deg');
-        $('corrCnt').textContent = correct; $('wronCnt').textContent = total - correct; $('totCnt').textContent = total; $('timeTaken').textContent = ts;
+        let tt = Math.round((Date.now() - quizStartTime) / 1000);
+        let ts = Math.floor(tt / 60) + 'm ' + (tt % 60) + 's';
+        let correct = 0;
+        let reviewHTML = questionsBank.map((q, i) => {
+            let ua = userAnswers[i];
+            if (ua === q.correctAnswer) correct++;
+            let ul = ua !== null ? (q.optionsLetters?.[ua] || String.fromCharCode(65 + ua)) : '—';
+            let cl = q.optionsLetters?.[q.correctAnswer] || String.fromCharCode(65 + q.correctAnswer);
+            return `<div class="review-item ${ua===q.correctAnswer?'r-correct':'r-wrong'}"><div class="review-q">${i+1}. ${q.question}</div><div class="review-a">Your: <span class="${ua===q.correctAnswer?'txt-correct':'txt-wrong'}">${ul}) ${q.options[ua]||'—'}</span> | Correct: <span class="txt-correct">${cl}) ${q.options[q.correctAnswer]}</span></div></div>`;
+        }).join('');
+        let total = questionsBank.length;
+        let pct = Math.round((correct / total) * 100);
+        let xpEarned = 10;
+        if (pct >= 90) xpEarned += 20;
+        else if (pct >= 75) xpEarned += 10;
+        $('scoreNum').textContent = correct;
+        $('scoreDenom').textContent = '/ ' + total;
+        $('scoreDonut').style.setProperty('--score-deg', (correct / total) * 360 + 'deg');
+        $('corrCnt').textContent = correct;
+        $('wronCnt').textContent = total - correct;
+        $('totCnt').textContent = total;
+        $('timeTaken').textContent = ts;
         $('reviewWrap').innerHTML = reviewHTML;
-        let g = '', gc = ''; if (pct >= 90) { g = 'A'; gc = 'grade-a'; } else if (pct >= 75) { g = 'B'; gc = 'grade-b'; } else if (pct >= 60) { g = 'C'; gc = 'grade-c'; } else { g = 'D'; gc = 'grade-d'; }
+        let g = '', gc = '';
+        if (pct >= 90) { g = 'A'; gc = 'grade-a'; }
+        else if (pct >= 75) { g = 'B'; gc = 'grade-b'; }
+        else if (pct >= 60) { g = 'C'; gc = 'grade-c'; }
+        else { g = 'D'; gc = 'grade-d'; }
         $('gradeBadgeContainer').innerHTML = `<span class="grade-badge ${gc}">Grade: ${g}</span>`;
-        $('publishSubject').value = currentSubjectTag || ''; $('publishTopic').value = currentTopicTag || '';
-        localStorage.removeItem('amad_quiz_progress'); $('resumeBanner').classList.remove('show'); $('resumeBadge').style.display = 'none';
-        let cu = getCurrentUser(); if (cu && !getIsGuest()) { cu.quizCount = (cu.quizCount || 0) + 1; let xpEarned = 10; if (pct >= 90) xpEarned += 20; else if (pct >= 75) xpEarned += 10; cu.xp = (cu.xp || 0) + xpEarned; let users = getUsers(); let u = users.find(x => x.username === cu.username); if (u) { u.quizCount = cu.quizCount; u.xp = cu.xp; setStore('amad_users', users); } }
+        $('publishSubject').value = currentSubjectTag || '';
+        $('publishTopic').value = currentTopicTag || '';
+        localStorage.removeItem('amad_quiz_progress');
+        $('resumeBanner').classList.remove('show');
+        $('resumeBadge').style.display = 'none';
+        await saveQuizAttempt(pct, total, correct, total - correct, tt, xpEarned);
+        await saveMistakesToCloud();
         switchScreen('resultScreen');
     }
 
-    window.restartQuiz = function() { switchScreen('quizScreen'); initQuiz(); quizStartTime = Date.now(); };
+    window.restartQuiz = function() {
+        switchScreen('quizScreen');
+        initQuiz();
+        quizStartTime = Date.now();
+    };
 
     // ===== PUBLISH =====
-    window.publishFullQuiz = function() { if (getIsGuest()) { showError('Sign in to publish.'); return; } let spec = $('publishSpecialty').value.trim(), sub = $('publishSubject').value.trim() || currentSubjectTag, top = $('publishTopic').value.trim() || currentTopicTag; if (!spec && !sub && !top) { showError('Add at least one tag.'); return; } let pub = getStore('amad_published_quizzes'); let raw = questionsBank.map((q, i) => `${q.question}\n${q.options.map((o,oi)=>`${String.fromCharCode(65+oi)}) ${o}`).join('\n')}\nCorrect Answer: ${String.fromCharCode(65+q.correctAnswer)}`).join('\n\n'); pub.unshift({ id: Date.now(), title: currentQuizName, questionCount: questionsBank.length, specialty: spec, subject: sub, topic: top, publishedBy: getCurrentUser().username, publishedAt: new Date().toISOString(), questionsRaw: raw, ratings: {}, avgRating: 0 }); if (pub.length > 500) pub.length = 500; setStore('amad_published_quizzes', pub); showSuccess('Published!'); };
-
-    function renderStarRating(qid, r) { let h = '<span class="star-rating">'; for (let i = 1; i <= 5; i++) h += `<span class="star ${i<=r?'active':''}" onclick="event.stopPropagation();rateQuiz(${qid},${i})">★</span>`; h += `<span>${r>0?r.toFixed(1):'—'}</span></span>`; return h; }
-    window.rateQuiz = function(qid, stars) { if (getIsGuest()) return; let cu = getCurrentUser(); let ratings = getStore('amad_ratings', '{}'); if (!ratings[qid]) ratings[qid] = {}; ratings[qid][cu.username] = stars; setStore('amad_ratings', ratings); let pub = getStore('amad_published_quizzes'); let q = pub.find(p => p.id === qid); if (q) { let v = Object.values(ratings[qid]); q.avgRating = v.reduce((a, b) => a + b, 0) / v.length; setStore('amad_published_quizzes', pub); } renderDiscover(); };
+    window.publishFullQuiz = async function() {
+        if (isGuest) { showError('Sign in to publish.'); return; }
+        let spec = $('publishSpecialty').value.trim();
+        let sub = $('publishSubject').value.trim() || currentSubjectTag;
+        let top = $('publishTopic').value.trim() || currentTopicTag;
+        if (!spec && !sub && !top) { showError('Add at least one tag.'); return; }
+        await publishQuizToCloud(spec, sub, top);
+    };
 
     // ===== DISCOVER =====
-    function renderDiscover() { let pub = getStore('amad_published_quizzes'); let search = ($('discoverSearch')?.value || '').toLowerCase(); let sf = $('discoverSubjectFilter')?.value || ''; let allS = [...new Set(pub.map(p => p.subject).filter(Boolean))]; $('discoverSubjectFilter').innerHTML = '<option value="">All Subjects</option>' + allS.map(s => `<option value="${s}" ${s===sf?'selected':''}>${s}</option>`).join(''); let f = pub; if (sf) f = f.filter(p => p.subject === sf); if (search) f = f.filter(p => (p.title || '').toLowerCase().includes(search) || (p.subject || '').toLowerCase().includes(search) || (p.specialty || '').toLowerCase().includes(search)); $('discoverGrid').innerHTML = f.length ? f.map(p => `<div class="quiz-card-item published-card" onclick="selectDiscoverQuiz(${p.id})" style="${discoverSelected===p.id?'border-color:var(--purple)!important;':''}"><div class="qc-title">📝 ${p.title} <span class="publish-badge">Pub</span></div><div class="qc-meta">📋 ${p.questionCount} Qs · ${p.subject||''} · ${p.specialty||''}</div><div class="qc-meta">By: @${p.publishedBy} · ${renderStarRating(p.id,p.avgRating||0)}</div></div>`).join('') : '<div style="text-align:center;padding:30px;grid-column:1/-1;">No published quizzes.</div>'; }
-    window.selectDiscoverQuiz = function(id) { discoverSelected = discoverSelected === id ? null : id; renderDiscover(); };
-    window.generateFromDiscover = function() { if (!discoverSelected) return; let q = getStore('amad_published_quizzes').find(p => p.id === discoverSelected); if (!q) return; if (questionsInput) questionsInput.value = q.questionsRaw; currentQuizName = q.title; currentSubjectTag = q.subject || ''; currentTopicTag = q.topic || ''; renderTagInputs(); let r = ultraParse(q.questionsRaw); if (r.error) return; questionsBank = r.questions; quizStartTime = Date.now(); switchScreen('quizScreen'); initQuiz(); };
+    async function renderDiscover() {
+        let pub = await loadPublishedQuizzes();
+        let search = ($('discoverSearch')?.value || '').toLowerCase();
+        let sf = $('discoverSubjectFilter')?.value || '';
+        let allS = [...new Set(pub.map(p => p.subject).filter(Boolean))];
+        $('discoverSubjectFilter').innerHTML = '<option value="">All Subjects</option>' + allS.map(s => `<option value="${s}" ${s===sf?'selected':''}>${s}</option>`).join('');
+        if (sf) pub = pub.filter(p => p.subject === sf);
+        if (search) pub = pub.filter(p => (p.title || '').toLowerCase().includes(search) || (p.subject || '').toLowerCase().includes(search) || (p.specialty || '').toLowerCase().includes(search));
+        $('discoverGrid').innerHTML = pub.length ? pub.map(p => `<div class="quiz-card-item published-card" onclick="selectDiscoverQuiz('${p.id}')"><div class="qc-title">📝 ${p.title} <span class="publish-badge">Pub</span></div><div class="qc-meta">📋 ${p.question_count} Qs · ${p.subject||''} · ${p.specialty||''}</div><div class="qc-meta">By: @${p.published_by} · <span class="star-rating">${renderStarRating(p.id, p.avg_rating||0)}</span></div></div>`).join('') : '<div style="text-align:center;padding:30px;">No published quizzes.</div>';
+    }
 
-    // ===== COMMUNITY =====
-    function renderCommunityPosts() { let posts = getStore('amad_community_posts'); $('communityPosts').innerHTML = posts.length ? posts.map(p => `<div class="community-post"><div class="cp-header"><div class="cp-avatar">${(p.author||'U').slice(0,2).toUpperCase()}</div><div><div class="cp-user">@${p.author}</div><div class="cp-time">${new Date(p.timestamp).toLocaleString()}</div></div></div><div class="cp-body"><b>${p.title}</b><br>${p.body}</div>${p.tags?`<div class="cp-tags">${p.tags.split(',').map(t=>`<span class="tag-suggestion">${t.trim()}</span>`).join('')}</div>`:''}<div class="comments-section">${(p.comments||[]).map(c=>`<div class="comment-item"><span class="cm-author">@${c.author}</span>: ${c.text} <button class="comment-reply-btn" onclick="replyToComment(${p.id},'${c.author}')">Reply</button></div>`).join('')}<button class="btn btn-sm btn-outline" style="margin-top:6px;" onclick="addComment(${p.id})">💬 Comment</button></div></div>`).join('') : '<div style="text-align:center;padding:30px;">No posts yet.</div>'; }
-    window.addComment = function(pid) { if (getIsGuest()) return; let t = prompt('Comment:'); if (!t) return; let posts = getStore('amad_community_posts'); let p = posts.find(x => x.id === pid); if (!p) return; if (!p.comments) p.comments = []; p.comments.push({ author: getCurrentUser().username, text: t, timestamp: Date.now() }); setStore('amad_community_posts', posts); renderCommunityPosts(); };
-    window.replyToComment = function(pid, author) { let t = prompt(`Reply to @${author}:`); if (!t) return; let posts = getStore('amad_community_posts'); let p = posts.find(x => x.id === pid); if (!p) return; p.comments.push({ author: getCurrentUser().username, text: `@${author} ${t}`, timestamp: Date.now() }); setStore('amad_community_posts', posts); renderCommunityPosts(); };
-    window.openNewPostModal = function() { if (getIsGuest()) return; $('newPostModal').classList.add('show'); };
-    window.closeNewPostModal = function() { $('newPostModal').classList.remove('show'); };
-    window.submitCommunityPost = function() { let ti = $('postTitle').value.trim(), bo = $('postBody').value.trim(), ta = $('postTags').value.trim(); if (!ti || !bo) return; let posts = getStore('amad_community_posts'); posts.unshift({ id: Date.now(), title: ti, body: bo, tags: ta, author: getCurrentUser().username, timestamp: Date.now(), comments: [] }); setStore('amad_community_posts', posts); closeNewPostModal(); renderCommunityPosts(); let cu = getCurrentUser(); if (cu) { cu.xp = (cu.xp || 0) + 5; let users = getUsers(); let u = users.find(x => x.username === cu.username); if (u) { u.xp = cu.xp; setStore('amad_users', users); } } };
+    function renderStarRating(qid, r) {
+        let h = '<span class="star-rating">';
+        for (let i = 1; i <= 5; i++) h += `<span class="star ${i<=r?'active':''}" onclick="event.stopPropagation();rateQuizCloud('${qid}',${i})">★</span>`;
+        h += `<span>${r>0?r.toFixed(1):'—'}</span></span>`;
+        return h;
+    }
 
-    // ===== NOTIFICATIONS =====
-    function addNotification(type, text, targetUser) { let notifs = getStore('amad_notifications_' + targetUser); notifs.unshift({ id: Date.now(), type, text, read: false, timestamp: Date.now() }); if (notifs.length > 50) notifs.length = 50; setStore('amad_notifications_' + targetUser, notifs); }
-    function renderNotifications() { let cu = getCurrentUser(); if (!cu || getIsGuest()) { $('notificationsContent').innerHTML = '<div style="text-align:center;padding:30px;">Sign in to view.</div>'; return; } let notifs = getStore('amad_notifications_' + cu.username); $('notificationsContent').innerHTML = notifs.length ? notifs.map(n => `<div class="notification-item ${n.read?'':'unread'}">🔔 ${n.text} <span style="font-size:10px;color:var(--text-3);">${new Date(n.timestamp).toLocaleDateString()}</span></div>`).join('') : '<div style="text-align:center;padding:30px;">No notifications.</div>'; notifs.forEach(n => n.read = true); setStore('amad_notifications_' + cu.username, notifs); updateNotificationBadge(); }
-    function updateNotificationBadge() { let cu = getCurrentUser(); if (!cu || getIsGuest()) return; let notifs = getStore('amad_notifications_' + cu.username); let unread = notifs.filter(n => !n.read).length; if ($('notifBadge')) { $('notifBadge').textContent = unread; $('notifBadge').style.display = unread > 0 ? 'inline-block' : 'none'; } }
+    window.rateQuizCloud = async function(qid, stars) {
+        if (isGuest) return;
+        await rateQuizOnCloud(qid, stars);
+        renderDiscover();
+    };
 
-    // ===== LEADERBOARD =====
-    function renderLeaderboard() { let users = getUsers().filter(u => u.role !== 'admin').sort((a, b) => (b.xp || 0) - (a.xp || 0)).slice(0, 20); $('leaderboardContent').innerHTML = users.map((u, i) => { let r = i + 1; return `<div class="leaderboard-row"><span class="leaderboard-rank ${r<=3?'top-'+r:''}">${r===1?'🥇':r===2?'🥈':r===3?'🥉':'#'+r}</span><div class="uc-avatar">${u.name.slice(0,2).toUpperCase()}</div><span style="flex:1;font-weight:600;">${u.name}</span><span>${u.xp||0} XP</span></div>`; }).join(''); }
+    let discoverSelected = null;
+    window.selectDiscoverQuiz = function(id) {
+        discoverSelected = discoverSelected === id ? null : id;
+        renderDiscover();
+    };
 
-    // ===== PROFILE =====
-    function renderProfileScreen() { let cu = getCurrentUser(); if (!cu || getIsGuest()) { $('profileContent').innerHTML = '<div style="text-align:center;padding:30px;">Sign in to view.</div>'; return; } let hist = getStore('amad_history_' + cu.username); let pub = getStore('amad_published_quizzes').filter(p => p.publishedBy === cu.username); let posts = getStore('amad_community_posts').filter(p => p.author === cu.username); let avg = hist.length ? Math.round(hist.reduce((s, h) => s + (h.pct || 0), 0) / hist.length) : 0; let best = hist.length ? Math.max(...hist.map(h => h.pct || 0)) : 0; $('profileContent').innerHTML = `<div class="profile-header"><div class="profile-avatar-lg">${cu.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)}</div><div><h3>${cu.name}</h3><p>@${cu.username} · ${cu.role}</p>${cu.email?`<p>📧 ${cu.email}</p>`:''}${cu.recoveryCode?`<p>🔑 Recovery: ${cu.recoveryCode}</p>`:''}<button class="btn btn-sm btn-outline" style="margin-top:8px;" onclick="editProfile()">✏️ Edit</button></div></div><div class="profile-stats-grid"><div class="profile-stat"><div class="ps-val">${cu.quizCount||0}</div><div class="ps-lbl">Quizzes</div></div><div class="profile-stat"><div class="ps-val">${avg}%</div><div class="ps-lbl">Avg</div></div><div class="profile-stat"><div class="ps-val">${best}%</div><div class="ps-lbl">Best</div></div><div class="profile-stat"><div class="ps-val">${cu.xp||0}</div><div class="ps-lbl">XP</div></div><div class="profile-stat"><div class="ps-val">${pub.length}</div><div class="ps-lbl">Published</div></div><div class="profile-stat"><div class="ps-val">${posts.length}</div><div class="ps-lbl">Posts</div></div></div>`; }
-    window.editProfile = function() { let cu = getCurrentUser(); if (!cu) return; let nn = prompt('Name:', cu.name); if (nn && nn.trim()) { cu.name = nn.trim(); $('userDisplayName').textContent = cu.name; $('userAvatar').textContent = cu.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2); let users = getUsers(); let u = users.find(x => x.username === cu.username); if (u) u.name = cu.name; setStore('amad_users', users); sessionStorage.setItem('amad_current_user', JSON.stringify(cu)); } let np = prompt('New password (leave blank):'); if (np && np.length >= 4) { cu.password = np; let users = getUsers(); let u = users.find(x => x.username === cu.username); if (u) u.password = np; setStore('amad_users', users); sessionStorage.setItem('amad_current_user', JSON.stringify(cu)); } let nc = prompt('New recovery code (leave blank):'); if (nc !== null) { cu.recoveryCode = nc.trim(); let users = getUsers(); let u = users.find(x => x.username === cu.username); if (u) u.recoveryCode = cu.recoveryCode; setStore('amad_users', users); sessionStorage.setItem('amad_current_user', JSON.stringify(cu)); } renderProfileScreen(); };
+    window.generateFromDiscover = async function() {
+        if (!discoverSelected) return;
+        let pub = (await loadPublishedQuizzes()).find(p => p.id === discoverSelected);
+        if (!pub) return;
+        $('questionsInput').value = pub.questions_raw;
+        currentQuizName = pub.title;
+        currentSubjectTag = pub.subject || '';
+        currentTopicTag = pub.topic || '';
+        renderTagInputs();
+        let r = ultraParse(pub.questions_raw);
+        if (r.error) return;
+        questionsBank = r.questions;
+        quizStartTime = Date.now();
+        switchScreen('quizScreen');
+        initQuiz();
+    };
 
-    // ===== GLOBAL Q BANK =====
-    function addToGlobalQuestionBank(qs) { let bank = getStore('amad_global_question_bank'); qs.forEach(q => { bank.push({ id: Date.now() + Math.random(), question: q.question, options: q.options, correctAnswer: q.correctAnswer, subjectTag: currentSubjectTag || 'Uncategorized', topicTag: currentTopicTag || 'General', submittedBy: getCurrentUser()?.username || 'guest', submittedAt: new Date().toISOString() }); }); if (bank.length > 5000) bank.splice(0, bank.length - 5000); setStore('amad_global_question_bank', bank); }
-    function renderQuestionBank() { if (getCurrentUser()?.role !== 'admin') { $('questionBankContent').innerHTML = '<div style="text-align:center;color:var(--danger);padding:30px;">⚠️ Admin only.</div>'; return; } let bank = getStore('amad_global_question_bank'); $('questionBankContent').innerHTML = `<div class="admin-grid"><div class="admin-stat"><div class="as-icon">📋</div><div class="as-val">${bank.length}</div></div></div><div style="max-height:400px;overflow-y:auto;"><table class="admin-table"><thead><tr><th>Question</th><th>Subject</th><th>By</th></tr></thead><tbody>${bank.slice(-100).reverse().map(q=>`<tr><td>${q.question.slice(0,80)}...</td><td>${q.subjectTag||'—'}</td><td>@${q.submittedBy}</td></tr>`).join('')}</tbody></table></div>`; }
+    // ===== BROWSE =====
+    function renderBrowseScreen() {
+        let allF = ['All', ...customFolders, 'Uncategorized'];
+        let sel = currentFolder || 'All';
+        $('browseFolderSelector').innerHTML = allF.map(f => `<button class="btn btn-sm ${f===sel?'btn-primary':'btn-outline'}" onclick="currentFolder='${f}';renderBrowseScreen();">${f==='All'?'📂 All':'📁 '+f}</button>`).join('');
+        let filtered = sel === 'All' ? savedQuizzes : savedQuizzes.filter(q => q.folder === sel);
+        $('quizzesGrid').innerHTML = filtered.length ? filtered.map(q => `<div class="quiz-card-item" onclick="loadSavedQuiz('${q.id}')"><button class="qc-delete" onclick="event.stopPropagation();deleteSavedQuiz('${q.id}')">🗑️</button><div class="qc-title">📝 ${q.title}</div><div class="qc-meta">📋 ${q.question_count} Qs · ${new Date(q.created_at).toLocaleDateString()}</div></div>`).join('') : '<div style="text-align:center;padding:30px;grid-column:1/-1;">No quizzes. Create one!</div>';
+    }
 
-    // ===== SAVED QUIZZES =====
-    function autoSaveQuiz() { let raw = questionsInput ? questionsInput.value : ''; if (!raw.trim() || !questionsBank.length) return; let t = currentQuizName || questionsBank[0]?.question?.slice(0, 60) || 'Untitled'; let qo = { id: Date.now(), title: t, folder: currentFolder || 'Uncategorized', questionsRaw: raw, date: new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}), questionCount: questionsBank.length, subjectTag: currentSubjectTag, topicTag: currentTopicTag }; savedQuizzes = savedQuizzes.filter(q => q.questionsRaw !== raw); savedQuizzes.unshift(qo); if (savedQuizzes.length > 200) savedQuizzes.length = 200; saveQuizzes(); }
-    function saveQuizzes() { if (getIsGuest()) return; let cu = getCurrentUser(); if (cu) setStore('amad_saved_quizzes_' + cu.username, savedQuizzes); }
-    function renderBrowseScreen() { let allF = ['All', ...customFolders, 'Uncategorized']; let sel = browseCurrentFolder || 'All'; $('browseFolderSelector').innerHTML = allF.map(f => `<button class="btn btn-sm ${f===sel?'btn-primary':'btn-outline'}" onclick="browseCurrentFolder='${f}';renderBrowseScreen();">${f==='All'?'📂 All':'📁 '+f}</button>`).join(''); let filtered = sel === 'All' ? savedQuizzes : savedQuizzes.filter(q => q.folder === sel); $('quizzesGrid').innerHTML = filtered.length ? filtered.map(q => `<div class="quiz-card-item" onclick="loadSavedQuiz(${q.id})"><button class="qc-delete" onclick="event.stopPropagation();deleteSavedQuiz(${q.id})">🗑️</button><div class="qc-title">📝 ${q.title}</div><div class="qc-meta">📋 ${q.questionCount} Qs · ${q.date}</div></div>`).join('') : '<div style="text-align:center;padding:30px;">No quizzes.</div>'; }
-    window.loadSavedQuiz = function(id) { let q = savedQuizzes.find(x => x.id === id); if (!q) return; if (questionsInput) questionsInput.value = q.questionsRaw; currentFolder = q.folder || ''; currentQuizName = q.title || ''; currentSubjectTag = q.subjectTag || ''; currentTopicTag = q.topicTag || ''; renderTagInputs(); let r = ultraParse(q.questionsRaw); if (r.error) { showError(r.error); return; } questionsBank = r.questions; quizStartTime = Date.now(); switchScreen('quizScreen'); initQuiz(); };
-    window.deleteSavedQuiz = function(id) { if (getIsGuest()) return; let q = savedQuizzes.find(x => x.id === id); if (!q || !confirm('Move to trash?')) return; trashItems.unshift({ ...q, deletedAt: Date.now() }); savedQuizzes = savedQuizzes.filter(x => x.id !== id); saveQuizzes(); saveTrash(); renderBrowseScreen(); };
+    window.loadSavedQuiz = function(id) {
+        let q = savedQuizzes.find(x => x.id === id);
+        if (!q) return;
+        $('questionsInput').value = q.questions_raw;
+        currentFolder = q.folder || '';
+        currentQuizName = q.title || '';
+        currentSubjectTag = q.subject_tag || '';
+        currentTopicTag = q.topic_tag || '';
+        currentQuizId = q.id;
+        renderTagInputs();
+        let r = ultraParse(q.questions_raw);
+        if (r.error) { showError(r.error); return; }
+        questionsBank = r.questions;
+        quizStartTime = Date.now();
+        switchScreen('quizScreen');
+        initQuiz();
+    };
+
+    window.deleteSavedQuiz = async function(id) {
+        if (isGuest) return;
+        if (!confirm('Move to trash?')) return;
+        await softDeleteQuizOnCloud(id);
+        savedQuizzes = savedQuizzes.filter(x => x.id !== id);
+        renderBrowseScreen();
+    };
 
     // ===== TRASH =====
-    function cleanTrash() { let n = Date.now(); trashItems = trashItems.filter(i => (n - i.deletedAt) < 30 * 24 * 60 * 60 * 1000); saveTrash(); }
-    function saveTrash() { if (getIsGuest()) return; let cu = getCurrentUser(); if (cu) setStore('amad_trash_' + cu.username, trashItems); }
-    function renderTrash() { cleanTrash(); $('trashGrid').innerHTML = trashItems.length ? trashItems.map(t => { let dl = Math.ceil((30 * 24 * 60 * 60 * 1000 - (Date.now() - t.deletedAt)) / (24 * 60 * 60 * 1000)); return `<div class="quiz-card-item trash-item"><div class="qc-title">📝 ${t.title} <span class="trash-badge">${dl}d</span></div><div class="qc-meta">📋 ${t.questionCount} Qs</div><div class="qc-actions"><button class="btn btn-success btn-sm" onclick="restoreFromTrash(${t.id})">🔄</button><button class="btn btn-danger btn-sm" onclick="permanentlyDelete(${t.id})">❌</button></div></div>`; }).join('') : '<div class="trash-empty-state"><div class="empty-icon">📭</div><p>Empty</p></div>'; }
-    window.restoreFromTrash = function(id) { let i = trashItems.find(t => t.id === id); if (!i) return; trashItems = trashItems.filter(t => t.id !== id); saveTrash(); savedQuizzes.unshift(i); saveQuizzes(); renderTrash(); renderBrowseScreen(); };
-    window.permanentlyDelete = function(id) { if (!confirm('Delete forever?')) return; trashItems = trashItems.filter(t => t.id !== id); saveTrash(); renderTrash(); };
-    window.emptyTrash = function() { if (!trashItems.length || !confirm('Empty trash?')) return; trashItems = []; saveTrash(); renderTrash(); };
+    function renderTrash() {
+        $('trashGrid').innerHTML = trashItems.length ? trashItems.map(t => {
+            let dl = Math.ceil((30 * 24 * 60 * 60 * 1000 - (Date.now() - (t.deletedAt || Date.now()))) / (24 * 60 * 60 * 1000));
+            return `<div class="quiz-card-item trash-item"><div class="qc-title">📝 ${t.title} <span class="trash-badge">${Math.max(0,dl)}d</span></div><div class="qc-actions"><button class="btn btn-success btn-sm" onclick="restoreFromTrash(${t.id})">🔄</button><button class="btn btn-danger btn-sm" onclick="permanentlyDelete(${t.id})">❌</button></div></div>`;
+        }).join('') : '<div class="trash-empty-state"><div class="empty-icon">📭</div><p>Empty</p></div>';
+    }
+
+    window.emptyTrash = function() {
+        if (!trashItems.length || !confirm('Empty trash?')) return;
+        trashItems = [];
+        saveLocalTrash();
+        renderTrash();
+    };
 
     // ===== FOLDERS =====
-    window.openCreateFolderModal = function() { if (getIsGuest()) return; $('newFolderNameInput').value = ''; $('createFolderModal').classList.add('show'); };
+    window.openCreateFolderModal = function() { if (isGuest) return; $('newFolderNameInput').value = ''; $('createFolderModal').classList.add('show'); };
     window.closeCreateFolderModal = function() { $('createFolderModal').classList.remove('show'); };
-    window.createNewFolder = function() { let n = $('newFolderNameInput').value.trim(); if (!n || customFolders.includes(n)) return; customFolders.push(n); setStore('amad_folders_' + getCurrentUser().username, customFolders); currentFolder = n; closeCreateFolderModal(); renderFolderList(); };
-    function renderFolderList() { let fl = $('folderList'); if (!customFolders.length) { fl.innerHTML = '<li style="color:#3a5a5e;padding:4px 12px;">No folders</li>'; return; } fl.innerHTML = customFolders.map(f => `<li class="folder-item" onclick="browseCurrentFolder='${f}';currentFolder='${f}';switchScreen('browseScreen');">📁 ${f} <span class="folder-count">${savedQuizzes.filter(q=>q.folder===f).length}</span></li>`).join(''); }
+    window.createNewFolder = function() {
+        let n = $('newFolderNameInput').value.trim();
+        if (!n || customFolders.includes(n)) return;
+        customFolders.push(n);
+        if (!isGuest && currentUser) localStorage.setItem('amad_folders_' + currentUser.id, JSON.stringify(customFolders));
+        currentFolder = n;
+        closeCreateFolderModal();
+        renderFolderList();
+    };
 
-    // ===== FILE UPLOAD =====
-    window.switchInputTab = function(tab) { document.querySelectorAll('.input-tab').forEach(el => el.classList.remove('active')); event.target.classList.add('active'); $('textInputPanel').style.display = tab === 'text' ? 'block' : 'none'; $('fileInputPanel').style.display = tab === 'file' ? 'block' : 'none'; };
-    window.handleDragOver = function(e) { e.preventDefault(); $('fileDropZone').classList.add('drag-over'); };
-    window.handleDrop = function(e) { e.preventDefault(); $('fileDropZone').classList.remove('drag-over'); let f = e.dataTransfer.files[0]; if (f) processFile(f); };
-    window.handleFileUpload = function(e) { let f = e.target.files[0]; if (f) processFile(f); };
-    async function processFile(file) { $('fileDropZone').classList.add('file-loaded'); let text = ''; try { let ext = file.name.split('.').pop().toLowerCase(); if (ext === 'pdf' && typeof pdfjsLib !== 'undefined') { pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'; let ab = await file.arrayBuffer(); let pdf = await pdfjsLib.getDocument({ data: ab }).promise; for (let i = 1; i <= pdf.numPages; i++) { let page = await pdf.getPage(i); let c = await page.getTextContent(); text += c.items.map(it => it.str).join(' ') + '\n'; } } else if (ext === 'docx' && typeof mammoth !== 'undefined') { let ab = await file.arrayBuffer(); text = (await mammoth.extractRawText({ arrayBuffer: ab })).value; } else { text = await file.text(); } if ($('questionsInput')) $('questionsInput').value = text; switchInputTab('text'); showSuccess('File extracted!'); } catch (e) { showError('Could not extract.'); } $('fileDropZone').classList.remove('file-loaded'); }
+    function renderFolderList() {
+        let fl = $('folderList');
+        if (!customFolders.length) { fl.innerHTML = '<li style="color:#3a5a5e;padding:4px 12px;">No folders</li>'; return; }
+        fl.innerHTML = customFolders.map(f => `<li class="folder-item" onclick="currentFolder='${f}';switchScreen('browseScreen');">📁 ${f}</li>`).join('');
+    }
 
-    // ===== AI =====
-    window.sendAiMessage = function() { let msg = $('aiInput').value.trim(); if (!msg) return; $('aiChatWindow').innerHTML += `<div class="ai-msg user">${msg}</div>`; $('aiInput').value = ''; setTimeout(() => { $('aiChatWindow').innerHTML += '<div class="ai-msg bot">I can help with formatting, tags, and more! Use "1. Question" format.</div>'; $('aiChatWindow').scrollTop = $('aiChatWindow').scrollHeight; }, 500); };
+    // ===== LEADERBOARD =====
+    async function renderLeaderboard() {
+        let users = await loadLeaderboardFromCloud();
+        $('leaderboardContent').innerHTML = users.length ? users.map((u, i) => {
+            let r = i + 1;
+            return `<div class="leaderboard-row"><span class="leaderboard-rank ${r<=3?'top-'+r:''}">${r===1?'🥇':r===2?'🥈':r===3?'🥉':'#'+r}</span><div class="uc-avatar">${(u.full_name||'U').slice(0,2).toUpperCase()}</div><span style="flex:1;font-weight:600;">${u.full_name||'User'}</span><span>${u.xp||0} XP</span></div>`;
+        }).join('') : '<div style="text-align:center;padding:30px;">No data yet.</div>';
+    }
+
+    // ===== PROFILE =====
+    async function renderProfileScreen() {
+        if (isGuest) { $('profileContent').innerHTML = '<div style="text-align:center;padding:30px;">Sign in to view.</div>'; return; }
+        let profile = currentUser?.profile || {};
+        try {
+            const { data: attempts } = await supabase.from('quiz_attempts').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false }).limit(5);
+            $('profileContent').innerHTML = `<div class="profile-header"><div class="profile-avatar-lg">${(currentUser.user_metadata?.full_name||'U').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)}</div><div><h3>${currentUser.user_metadata?.full_name||'User'}</h3><p>${currentUser.email}</p><p>Role: ${profile.role||'student'}</p></div></div><div class="profile-stats-grid"><div class="profile-stat"><div class="ps-val">${profile.xp||0}</div><div class="ps-lbl">XP</div></div><div class="profile-stat"><div class="ps-val">${attempts?.length||0}</div><div class="ps-lbl">Recent Quizzes</div></div></div>`;
+        } catch (e) {
+            $('profileContent').innerHTML = '<div style="text-align:center;padding:30px;">Could not load profile.</div>';
+        }
+    }
+
+    // ===== COMMUNITY =====
+    function renderCommunityPosts() {
+        $('communityPosts').innerHTML = '<div style="text-align:center;padding:30px;">Community coming soon with full Supabase integration!</div>';
+    }
+
+    window.openNewPostModal = function() { if (isGuest) return; $('newPostModal').classList.add('show'); };
+    window.closeNewPostModal = function() { $('newPostModal').classList.remove('show'); };
+    window.submitCommunityPost = async function() {
+        let title = $('postTitle').value.trim();
+        let body = $('postBody').value.trim();
+        if (!title || !body) return;
+        try {
+            await supabase.from('community_posts').insert({
+                user_id: currentUser.id,
+                author: currentUser.email,
+                title, body,
+                tags: ($('postTags').value || '').split(',').map(t => t.trim()).filter(Boolean)
+            });
+            closeNewPostModal();
+            await addXP(5, 'community_post', 'Created a community post');
+            showSuccess('Post created!');
+        } catch (e) {
+            showError('Failed to post: ' + e.message);
+        }
+    };
+
+    // ===== NOTIFICATIONS =====
+    async function renderNotifications() {
+        if (isGuest || !currentUser) { $('notificationsContent').innerHTML = '<div style="text-align:center;padding:30px;">Sign in to view.</div>'; return; }
+        try {
+            const { data: notifs } = await supabase.from('notifications').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false }).limit(20);
+            $('notificationsContent').innerHTML = notifs?.length ? notifs.map(n => `<div class="notification-item ${n.is_read?'':'unread'}">🔔 ${n.message} <span style="font-size:10px;color:var(--text-3);">${new Date(n.created_at).toLocaleDateString()}</span></div>`).join('') : '<div style="text-align:center;padding:30px;">No notifications.</div>';
+            if (notifs) await supabase.from('notifications').update({ is_read: true }).eq('user_id', currentUser.id);
+        } catch (e) {
+            $('notificationsContent').innerHTML = '<div style="text-align:center;padding:30px;">Could not load notifications.</div>';
+        }
+    }
 
     // ===== ADMIN =====
-    function renderAdminPanel() { let cu = getCurrentUser(); if (!cu || cu.role !== 'admin') { $('adminContent').innerHTML = '<div style="text-align:center;color:var(--danger);padding:30px;">⚠️ Admin only.</div>'; return; } let users = getUsers(); let allHist = users.flatMap(u => getStore('amad_history_' + u.username)); let pub = getStore('amad_published_quizzes'); $('adminContent').innerHTML = `<div class="admin-grid"><div class="admin-stat"><div class="as-icon">👥</div><div class="as-val">${users.length}</div></div><div class="admin-stat"><div class="as-icon">📋</div><div class="as-val">${allHist.length}</div></div><div class="admin-stat"><div class="as-icon">📤</div><div class="as-val">${pub.length}</div></div></div><table class="admin-table"><thead><tr><th>User</th><th>Role</th><th>XP</th><th>Actions</th></tr></thead><tbody>${users.map(u=>{let b='badge-student';if(u.role==='admin')b='badge-admin';else if(u.role==='doctor')b='badge-doctor';else if(u.role!=='student')b='badge-custom';return`<tr><td>@${u.username}</td><td><span class="badge ${b}">${u.role}</span></td><td>${u.xp||0}</td><td>${u.username!==cu.username&&u.role!=='admin'?`<button class="btn btn-danger btn-sm" onclick="adminDeleteUser('${u.username}')">🗑️</button>`:'—'}</td></tr>`;}).join('')}</tbody></table>`; }
-    window.adminDeleteUser = function(un) { if (!confirm(`Remove @${un}?`)) return; let users = getUsers().filter(u => u.username !== un); setStore('amad_users', users); ['amad_history_','amad_folders_','amad_saved_questions_','amad_saved_quizzes_','amad_trash_'].forEach(p => localStorage.removeItem(p + un)); renderAdminPanel(); };
-    window.exportAdminData = function() { let csv = 'Username,Name,Role,XP\n' + getUsers().map(u => `${u.username},${u.name},${u.role},${u.xp||0}`).join('\n'); let a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv])); a.download = 'report.csv'; a.click(); };
+    async function renderAdminPanel() {
+        if (!currentUser || currentUser.user_metadata?.role !== 'admin') {
+            $('adminContent').innerHTML = '<div style="text-align:center;color:var(--danger);padding:30px;">⚠️ Admin only.</div>';
+            return;
+        }
+        try {
+            const { data: users } = await supabase.from('profiles').select('*');
+            const { count: quizCount } = await supabase.from('quizzes').select('*', { count: 'exact', head: true });
+            const { count: attemptCount } = await supabase.from('quiz_attempts').select('*', { count: 'exact', head: true });
+            $('adminContent').innerHTML = `<div class="admin-grid"><div class="admin-stat"><div class="as-icon">👥</div><div class="as-val">${users?.length||0}</div><div class="as-lbl">Users</div></div><div class="admin-stat"><div class="as-icon">📋</div><div class="as-val">${quizCount||0}</div><div class="as-lbl">Quizzes</div></div><div class="admin-stat"><div class="as-icon">📊</div><div class="as-val">${attemptCount||0}</div><div class="as-lbl">Attempts</div></div></div>`;
+        } catch (e) {
+            $('adminContent').innerHTML = '<div style="text-align:center;padding:30px;">Could not load admin data.</div>';
+        }
+    }
+
+    window.exportAdminData = function() {
+        alert('Export feature coming soon!');
+    };
+
+    // ===== FILE UPLOAD =====
+    window.switchInputTab = function(tab) {
+        document.querySelectorAll('.input-tab').forEach(el => el.classList.remove('active'));
+        event.target.classList.add('active');
+        $('textInputPanel').style.display = tab === 'text' ? 'block' : 'none';
+        $('fileInputPanel').style.display = tab === 'file' ? 'block' : 'none';
+    };
+
+    window.handleDragOver = function(e) { e.preventDefault(); $('fileDropZone').classList.add('drag-over'); };
+    window.handleDrop = function(e) {
+        e.preventDefault();
+        $('fileDropZone').classList.remove('drag-over');
+        let f = e.dataTransfer.files[0];
+        if (f) processFile(f);
+    };
+
+    window.handleFileUpload = function(e) {
+        let f = e.target.files[0];
+        if (f) processFile(f);
+    };
+
+    async function processFile(file) {
+        $('fileDropZone').classList.add('file-loaded');
+        let text = '';
+        try {
+            let ext = file.name.split('.').pop().toLowerCase();
+            if (ext === 'pdf' && typeof pdfjsLib !== 'undefined') {
+                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                let ab = await file.arrayBuffer();
+                let pdf = await pdfjsLib.getDocument({ data: ab }).promise;
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    let page = await pdf.getPage(i);
+                    let c = await page.getTextContent();
+                    text += c.items.map(it => it.str).join(' ') + '\n';
+                }
+            } else if (ext === 'docx' && typeof mammoth !== 'undefined') {
+                let ab = await file.arrayBuffer();
+                text = (await mammoth.extractRawText({ arrayBuffer: ab })).value;
+            } else {
+                text = await file.text();
+            }
+            $('questionsInput').value = text;
+            switchInputTab('text');
+            showSuccess('File extracted!');
+        } catch (e) {
+            showError('Could not extract.');
+        }
+        $('fileDropZone').classList.remove('file-loaded');
+    }
 
     // ===== SHARE =====
     window.openShareModal = function() { $('shareModal').classList.add('show'); };
     window.closeShareModal = function() { $('shareModal').classList.remove('show'); };
-    window.generateShareLink = function() { let raw = questionsInput ? questionsInput.value : ''; let d = { questions: raw }; let link = window.location.origin + window.location.pathname + '?share=' + btoa(JSON.stringify(d)); $('shareLinkBox').textContent = link; };
-    window.copyShareLink = function() { navigator.clipboard.writeText($('shareLinkBox').textContent).then(() => { $('copySuccess').classList.add('show'); setTimeout(() => $('copySuccess').classList.remove('show'), 2000); }); };
+    window.generateShareLink = function() {
+        let raw = $('questionsInput')?.value || '';
+        let d = { questions: raw };
+        let link = window.location.origin + window.location.pathname + '?share=' + btoa(JSON.stringify(d));
+        $('shareLinkBox').textContent = link;
+    };
+    window.copyShareLink = function() {
+        navigator.clipboard.writeText($('shareLinkBox').textContent).then(() => {
+            $('copySuccess').classList.add('show');
+            setTimeout(() => $('copySuccess').classList.remove('show'), 2000);
+        });
+    };
 
     // ===== SAMPLES =====
-    window.loadSampleQuestions = function() { if (questionsInput) questionsInput.value = "1. What is the main function of the renal system?\nA. Blood filtration\nB. Hormone production\nC. Digestion\nD. Respiration\nCorrect Answer: A\n\n2. How many kidneys?\nA. 1\nB. 2\nC. 3\nD. 4\nCorrect Answer: B\n\n3. Urine transport structure?\nA. Urethra\nB. Renal pelvis\nC. Ureters\nD. Nephrons\nCorrect Answer: C"; if ($('quizNameInput')) $('quizNameInput').value = 'Renal System'; currentSubjectTag = 'Physiology'; currentTopicTag = 'Renal'; renderTagInputs(); };
-    window.clearAll = function() { if (questionsInput) questionsInput.value = ''; if ($('quizNameInput')) $('quizNameInput').value = ''; currentSubjectTag = ''; currentTopicTag = ''; renderTagInputs(); };
-    function showError(m) { let e = $('errorMsg'); if (e) { e.innerHTML = '❌ ' + m; e.classList.add('show'); setTimeout(() => e.classList.remove('show'), 4000); } }
-    function showSuccess(m) { let s = $('successMsg'); if (s) { s.innerHTML = '✅ ' + m; s.classList.add('show'); setTimeout(() => s.classList.remove('show'), 3000); } }
+    window.loadSampleQuestions = function() {
+        $('questionsInput').value = "1. What is the main function of the renal system?\nA. Blood filtration\nB. Hormone production\nC. Digestion\nD. Respiration\nCorrect Answer: A\n\n2. How many kidneys?\nA. 1\nB. 2\nC. 3\nD. 4\nCorrect Answer: B\n\n3. Urine transport structure?\nA. Urethra\nB. Renal pelvis\nC. Ureters\nD. Nephrons\nCorrect Answer: C";
+        $('quizNameInput').value = 'Renal System';
+        currentSubjectTag = 'Physiology';
+        currentTopicTag = 'Renal';
+        renderTagInputs();
+    };
+
+    window.clearAll = function() {
+        $('questionsInput').value = '';
+        $('quizNameInput').value = '';
+        currentSubjectTag = '';
+        currentTopicTag = '';
+        renderTagInputs();
+    };
+
+    // ===== AI =====
+    window.sendAiMessage = function() {
+        let msg = $('aiInput').value.trim();
+        if (!msg) return;
+        $('aiChatWindow').innerHTML += `<div class="ai-msg user">${msg}</div>`;
+        $('aiInput').value = '';
+        setTimeout(() => {
+            $('aiChatWindow').innerHTML += '<div class="ai-msg bot">I can help with formatting, tags, and more! Use "1. Question" format.</div>';
+            $('aiChatWindow').scrollTop = $('aiChatWindow').scrollHeight;
+        }, 500);
+    };
 
     // ===== EVENT LISTENERS =====
     document.getElementById('nextBtn').addEventListener('click', goNext);
-    document.addEventListener('keydown', e => { if (!$('quizScreen')?.classList.contains('active')) return; let k = e.key.toUpperCase(); if (['A','B','C','D'].includes(k) && !answerRevealed) { let idx = k.charCodeAt(0) - 65; if (idx < (questionsBank[currentIdx]?.options?.length || 0)) selectOption(idx); } if (e.key === 'Enter' && $('nextBtn') && !$('nextBtn').disabled) { e.preventDefault(); goNext(); } });
-    ['createFolderModal','shareModal','newPostModal','recoveryModal'].forEach(id => { let el = $(id); if (el) el.addEventListener('click', e => { if (e.target === el) el.classList.remove('show'); }); });
+    document.addEventListener('keydown', e => {
+        if (!$('quizScreen')?.classList.contains('active')) return;
+        let k = e.key.toUpperCase();
+        if (['A','B','C','D'].includes(k) && !answerRevealed) {
+            let idx = k.charCodeAt(0) - 65;
+            if (idx < (questionsBank[currentIdx]?.options?.length || 0)) selectOption(idx);
+        }
+        if (e.key === 'Enter' && $('nextBtn') && !$('nextBtn').disabled) { e.preventDefault(); goNext(); }
+    });
+
+    ['createFolderModal','shareModal','newPostModal'].forEach(id => {
+        let el = $(id);
+        if (el) el.addEventListener('click', e => { if (e.target === el) el.classList.remove('show'); });
+    });
+
     $('newFolderNameInput').addEventListener('keydown', e => { if (e.key === 'Enter') createNewFolder(); });
-    let qi = $('questionsInput'); if (qi) qi.addEventListener('input', () => { let cu = getCurrentUser(); if (cu && !getIsGuest()) localStorage.setItem('amad_saved_questions_' + cu.username, qi.value); });
     $('loginPassword').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
-    $('regPassword2').addEventListener('keydown', e => { if (e.key === 'Enter') doRegister(); });
 
     // ===== INIT =====
-    let cu = getCurrentUser(); if (cu) { onLoginSuccess(cu); } else { $('authWrapper').style.display = 'flex'; $('appBody').style.display = 'none'; let rm = localStorage.getItem('amad_remembered_user'); if (rm) { let u = JSON.parse(rm); $('loginUser').value = u.username; $('rememberMe').checked = true; } }
+    async function init() {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+            await loadUserProfile(session.user);
+        } else {
+            $('authWrapper').style.display = 'flex';
+            $('appBody').style.display = 'none';
+        }
+    }
+
+    supabase.auth.onAuthStateChange((event, session) => {
+        if (event === 'SIGNED_IN' && session?.user) {
+            loadUserProfile(session.user);
+        }
+    });
+
+    init();
     console.log('🚀 AMAD Medical Quiz Platform Ready');
-    console.log('👤 Admin: MDtoqaaldeekADMIN / MDS1842007 / Recovery: AMAD2025');
+    console.log('📡 Connected to Supabase: https://krmkthbafcivtwvvdiqn.supabase.co');
 })();
 </script>
 </body>
 </html>
-    
